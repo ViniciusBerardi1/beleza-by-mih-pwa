@@ -180,7 +180,11 @@ export default function ProdutoList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-gray-800">
-                    {p.tem_cor && p.cor ? `${p.nome} - ${p.cor}` : p.nome}
+                    {p.nome}
+                    {p.tem_cor && p.cor ? ` - ${p.cor}` : ""}
+                    {p.tem_tamanho && p.tamanho_quantidade
+                      ? ` ${p.tamanho_quantidade}${p.tamanho_unidade}`
+                      : ""}
                   </span>
                   <StatusBadge dataValidade={p.data_validade} />
                   <EstoqueBadge quantidade={p.quantidade} />
