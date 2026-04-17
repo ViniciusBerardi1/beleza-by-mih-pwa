@@ -6,25 +6,29 @@ import { motion } from "framer-motion";
 const ESTOQUE_BAIXO = 1;
 
 function StatusBadge({ dataValidade }) {
-  if (!dataValidade) return null;
-  const dias = differenceInDays(parseISO(dataValidade), new Date());
-  if (dias < 0)
+  if (!dataValidade || dataValidade === "") return null;
+  try {
+    const dias = differenceInDays(parseISO(dataValidade), new Date());
+    if (dias < 0)
+      return (
+        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
+          Vencido
+        </span>
+      );
+    if (dias <= 60)
+      return (
+        <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+          Vence em {dias}d
+        </span>
+      );
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
-        Vencido
+      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+        OK
       </span>
     );
-  if (dias <= 60)
-    return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">
-        Vence em {dias}d
-      </span>
-    );
-  return (
-    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-      OK
-    </span>
-  );
+  } catch {
+    return null;
+  }
 }
 
 function EstoqueBadge({ quantidade }) {
@@ -146,6 +150,7 @@ export default function ProdutoList({
                 <div className="text-xs text-gray-400 mt-0.5">
                   {p.categoria_nome} · Estoque: {p.quantidade}
                   {p.data_validade &&
+                    p.data_validade !== "" &&
                     ` · Validade: ${format(parseISO(p.data_validade), "dd/MM/yyyy", { locale: ptBR })}`}
                 </div>
               </div>
