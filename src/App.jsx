@@ -116,7 +116,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Sidebar view={view} setView={setView} produtos={produtos} />
-      <main className="ml-64 p-8">
+      <main className="md:ml-64 pt-16 md:pt-8 px-4 md:px-8 pb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={view}
