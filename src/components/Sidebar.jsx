@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Home } from "lucide-react";
 
 const categorias = [
   { id: "skincare", label: "Skincare", icon: "✨" },
@@ -169,7 +170,7 @@ export default function Sidebar({ view, setView, produtos }) {
       {/* MOBILE — header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between">
         <button
-          onClick={() => navegar("dashboard")}
+          onClick={() => setMenuAberto(!menuAberto)}
           className="flex items-center gap-2"
         >
           <img src="/logo.png" alt="Beleza by Mih" className="h-8 w-auto" />
@@ -178,10 +179,10 @@ export default function Sidebar({ view, setView, produtos }) {
           </h1>
         </button>
         <button
-          onClick={() => setMenuAberto(!menuAberto)}
-          className="text-gray-500 hover:text-gray-800 transition-colors p-2 text-xl border border-gray-200 rounded-lg h-10 w-10 flex items-center justify-center"
+          onClick={() => navegar("dashboard")}
+          className="text-gray-500 hover:text-rose-500 transition-colors p-2 h-10 w-10 flex items-center justify-center"
         >
-          {menuAberto ? "✕" : "☰"}
+          <Home size={22} />
         </button>
       </header>
 

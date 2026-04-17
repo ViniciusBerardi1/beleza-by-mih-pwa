@@ -119,9 +119,14 @@ export default function App() {
       {/* Botão fixo no canto superior direito */}
       <motion.button
         onClick={handleNovo}
-        animate={{ scale: [1, 1.06, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="fixed top-2 right-16 md:right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 h-10 rounded-2xl transition-colors shadow-lg text-sm md:text-base flex items-center"
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.08, 1, 1.08, 1, 1.08, 1] }}
+        transition={{
+          duration: 1.2,
+          ease: "easeInOut",
+          times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1],
+        }}
+        className="fixed top-2 right-14 md:right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 h-10 rounded-2xl transition-colors shadow-lg text-sm md:text-base flex items-center"
       >
         ✨ Novo produto
       </motion.button>
