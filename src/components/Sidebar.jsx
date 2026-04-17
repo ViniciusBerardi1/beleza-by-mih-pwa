@@ -36,6 +36,18 @@ export default function Sidebar({ view, setView, produtos }) {
     setMenuAberto(false);
   };
 
+  const Logo = ({ altura }) => (
+    <div className="flex items-center gap-2">
+      <img src="/logo.png" alt="Beleza by Mih" className={`${altura} w-auto`} />
+      <h1
+        className="font-semibold text-gray-800"
+        style={{ fontFamily: "Playfair Display, serif" }}
+      >
+        Beleza by Mih
+      </h1>
+    </div>
+  );
+
   const MenuConteudo = () => (
     <div className="flex flex-col gap-1">
       <button
@@ -148,21 +160,15 @@ export default function Sidebar({ view, setView, produtos }) {
     <>
       {/* DESKTOP — sidebar fixa */}
       <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 flex-col py-6 px-4 gap-1 overflow-y-auto z-40">
-        <div className="flex items-center gap-3 mb-6 px-2">
-          <span className="text-3xl">💄</span>
-          <h1 className="text-lg font-semibold text-gray-800">Beleza by Mih</h1>
+        <div className="mb-6 px-2">
+          <Logo altura="h-10" />
         </div>
         <MenuConteudo />
       </aside>
 
       {/* MOBILE — header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">💄</span>
-          <h1 className="text-base font-semibold text-gray-700">
-            Beleza by Mih
-          </h1>
-        </div>
+        <Logo altura="h-8" />
         <button
           onClick={() => setMenuAberto(!menuAberto)}
           className="text-gray-500 hover:text-gray-800 transition-colors p-1 text-xl"
@@ -180,12 +186,7 @@ export default function Sidebar({ view, setView, produtos }) {
           />
           <div className="md:hidden fixed top-0 left-0 h-full w-72 bg-white z-50 flex flex-col py-6 px-4 overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between mb-6 px-2">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl">💄</span>
-                <h1 className="text-lg font-semibold text-gray-800">
-                  Beleza by Mih
-                </h1>
-              </div>
+              <Logo altura="h-10" />
               <button
                 onClick={() => setMenuAberto(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl"

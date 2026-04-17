@@ -2,17 +2,27 @@
 
 :root {
   color-scheme: light;
+  --font-display: "Playfair Display", serif;
+  --font-body: "Lato", sans-serif;
 }
 
 body {
   background-color: #f9fafb;
   color: #1f2937;
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
 
 button {
+  font-family: var(--font-body);
   transition:
-    transform 0.1s ease,
-    opacity 0.1s ease;
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 button:active {
@@ -21,4 +31,10 @@ button:active {
   transition:
     transform 0.15s ease,
     opacity 0.15s ease;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-body);
 }
