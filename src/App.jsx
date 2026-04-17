@@ -44,7 +44,6 @@ export default function App() {
   }, []);
 
   const handleSalvar = async (produto) => {
-    console.log("salvando:", produto);
     try {
       if (produto.id) {
         await db.updateProduto(produto);
@@ -116,6 +115,17 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Sidebar view={view} setView={setView} produtos={produtos} />
+
+      {/* Botão fixo no canto superior direito */}
+      <motion.button
+        onClick={handleNovo}
+        animate={{ scale: [1, 1.06, 1] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        className="fixed top-2 right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-2xl transition-colors shadow-lg text-base"
+      >
+        ✨ + Novo produto
+      </motion.button>
+
       <main className="md:ml-64 pt-16 md:pt-8 px-4 md:px-8 pb-8">
         <AnimatePresence mode="wait">
           <motion.div

@@ -99,14 +99,6 @@ export default function ProdutoList({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-800">{titulo}</h2>
-        {mostrarBotaoNovo && (
-          <button
-            onClick={onNovo}
-            className="bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            + Novo produto
-          </button>
-        )}
       </div>
 
       <div className="flex flex-col gap-3 mb-5">
@@ -185,7 +177,7 @@ export default function ProdutoList({
                   🧴
                 </div>
               )}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-gray-800">
                     {p.tem_cor && p.cor ? `${p.nome} - ${p.cor}` : p.nome}
@@ -205,7 +197,7 @@ export default function ProdutoList({
                   )}
                 </div>
               </div>
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center shrink-0">
                 {(p.quantidade <= ESTOQUE_BAIXO ||
                   (p.data_validade &&
                     differenceInDays(parseISO(p.data_validade), new Date()) <
