@@ -17,6 +17,9 @@ export default function ProdutoForm({
     cor: produto?.cor || "",
     loja_compra: produto?.loja_compra || "sephora",
     avaliacao: produto?.avaliacao || 0,
+    tem_tamanho: produto?.tem_tamanho || 0,
+    tamanho_quantidade: produto?.tamanho_quantidade || "",
+    tamanho_unidade: produto?.tamanho_unidade || "ml",
   });
 
   const handleSubmit = () => {
@@ -184,6 +187,64 @@ export default function ProdutoForm({
                 }
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
               />
+            ) : null}
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">
+              Tamanho do produto
+            </label>
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    tem_tamanho: f.tem_tamanho ? 0 : 1,
+                    tamanho_quantidade: "",
+                    tamanho_unidade: "ml",
+                  }))
+                }
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${form.tem_tamanho ? "bg-rose-500" : "bg-gray-200"}`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${form.tem_tamanho ? "translate-x-4" : "translate-x-1"}`}
+                />
+              </button>
+              <span className="text-sm text-gray-500">
+                {form.tem_tamanho ? "Tem tamanho" : "Sem tamanho"}
+              </span>
+            </div>
+            {form.tem_tamanho ? (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Ex: 200"
+                  value={form.tamanho_quantidade}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      tamanho_quantidade: e.target.value,
+                    }))
+                  }
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+                />
+                <select
+                  value={form.tamanho_unidade}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, tamanho_unidade: e.target.value }))
+                  }
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+                >
+                  <option value="ml">ml</option>
+                  <option value="L">L</option>
+                  <option value="g">g</option>
+                  <option value="kg">kg</option>
+                  <option value="oz">oz</option>
+                  <option value="un">un</option>
+                </select>
+              </div>
             ) : null}
           </div>
 
