@@ -164,22 +164,22 @@ export default function ProdutoList({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: i * 0.05 }}
-              className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-4"
+              className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3"
             >
               {p.foto ? (
                 <img
                   src={p.foto}
                   alt={p.nome}
-                  className="w-16 h-16 rounded-lg object-cover"
+                  className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shrink-0"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg bg-gray-100 flex items-center justify-center text-xl shrink-0">
                   🧴
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-gray-800">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-medium text-gray-800 text-sm">
                     {p.nome}
                     {p.tem_cor && p.cor ? ` - ${p.cor}` : ""}
                     {p.tem_tamanho && p.tamanho_quantidade
@@ -189,37 +189,34 @@ export default function ProdutoList({
                   <StatusBadge dataValidade={p.data_validade} />
                   <EstoqueBadge quantidade={p.quantidade} />
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5">
-                  {p.categoria_nome} · Estoque: {p.quantidade}
+                <div className="text-xs text-gray-400 mt-0.5 truncate">
+                  {p.categoria_nome} · {p.quantidade} un
                   {p.data_validade &&
-                    ` · Validade: ${format(parseISO(p.data_validade), "dd/MM/yyyy", { locale: ptBR })}`}
-                  {p.avaliacao > 0 && (
-                    <span className="ml-1">
-                      · {"⭐".repeat(p.avaliacao)}
-                      {"☆".repeat(5 - p.avaliacao)}
-                    </span>
-                  )}
+                    ` · ${format(parseISO(p.data_validade), "dd/MM/yy", { locale: ptBR })}`}
+                  {p.avaliacao > 0 && ` · ${"⭐".repeat(p.avaliacao)}`}
                 </div>
               </div>
-              <div className="flex gap-2 items-center shrink-0">
+              <div className="flex flex-col gap-1.5 items-end shrink-0">
                 {(p.quantidade <= ESTOQUE_BAIXO ||
                   (p.data_validade &&
                     differenceInDays(parseISO(p.data_validade), new Date()) <
                       0)) && (
                   <BotaoComprar nome={p.nome} loja={p.loja_compra} />
                 )}
-                <button
-                  onClick={() => onEditar(p)}
-                  className="text-xs text-gray-500 hover:text-rose-500 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDeletar(p.id)}
-                  className="text-xs text-gray-500 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Remover
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onEditar(p)}
+                    className="text-xs text-gray-400 hover:text-rose-500 transition-colors"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => onDeletar(p.id)}
+                    className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    Remover
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
