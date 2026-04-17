@@ -1,0 +1,148 @@
+import { useState } from "react";
+
+const categorias = [
+  { id: "skincare", label: "Skincare", icon: "✨" },
+  { id: "cabelo", label: "Cabelo", icon: "💇" },
+  { id: "maquiagem", label: "Maquiagem", icon: "💄" },
+  { id: "corpo", label: "Corpo", icon: "🧴" },
+  { id: "perfumaria", label: "Perfumaria", icon: "🌸" },
+  { id: "outros", label: "Outros", icon: "📦" },
+];
+
+export default function Sidebar({ view, setView, produtos }) {
+  const [categoriasAberto, setCategoriasAberto] = useState(true);
+  const [alertasAberto, setAlertasAberto] = useState(true);
+
+  const totalVencendo = produtos.filter((p) => {
+    if (!p.data_validade) return false;
+    const dias = Math.ceil(
+      (new Date(p.data_validade) - new Date()) / (1000 * 60 * 60 * 24),
+    );
+    return dias >= 0 && dias <= 60;
+  }).length;
+
+  const totalVencidos = produtos.filter((p) => {
+    if (!p.data_validade) return false;
+    return new Date(p.data_validade) < new Date();
+  }).length;
+
+  const totalEstoqueBaixo = produtos.filter((p) => p.quantidade <= 1).length;
+
+  return (
+    <aside className="fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col py-6 px-4 gap-1 overflow-y-auto z-40">
+      <div className="flex items-center gap-3 mb-6 px-2">
+        <span className="text-3xl">💄</span>
+        <h1 className="text-lg font-semibold text-gray-800">Beleza by Mih</h1>
+      </div>
+
+      <button
+        onClick={() => setView("produtos")}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-left
+          ${view === "produtos" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+      >
+        <span className="text-lg">🧴</span> Todos os produtos
+      </button>
+
+      <button
+        onClick={() => setView("dashboard")}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-left
+          ${view === "dashboard" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+      >
+        <span className="text-lg">📊</span> Dashboard
+      </button>
+
+      {/* Categorias */}
+      <div className="mt-3">
+        <button
+          onClick={() => setCategoriasAberto(!categoriasAberto)}
+          className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors"
+        >
+          <span>Categorias</span>
+          <span>{categoriasAberto ? "▾" : "▸"}</span>
+        </button>
+        {categoriasAberto && (
+          <div className="flex flex-col gap-0.5 mt-1">
+            {categorias.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setView(`cat_${cat.id}`)}
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-colors w-full text-left
+                  ${view === `cat_${cat.id}` ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+              >
+                <span className="text-base">{cat.icon}</span>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Alertas */}
+      <div className="mt-3">
+        <button
+          onClick={() => setAlertasAberto(!alertasAberto)}
+          className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors"
+        >
+          <span>Alertas</span>
+          <span>{alertasAberto ? "▾" : "▸"}</span>
+        </button>
+        {alertasAberto && (
+          <div className="flex flex-col gap-0.5 mt-1">
+            <button
+              onClick={() => setView("vencendo")}
+              className={`flex items-center justify-between px-4 py-2 rounded-xl text-sm transition-colors w-full text-left
+                ${view === "vencendo" ? "bg-yellow-50 text-yellow-600" : "text-gray-500 hover:bg-gray-100"}`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-base">⚠️</span> Vencendo
+              </span>
+              {totalVencendo > 0 && (
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">
+                  {totalVencendo}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setView("vencidos")}
+              className={`flex items-center justify-between px-4 py-2 rounded-xl text-sm transition-colors w-full text-left
+                ${view === "vencidos" ? "bg-red-50 text-red-600" : "text-gray-500 hover:bg-gray-100"}`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-base">🔴</span> Vencidos
+              </span>
+              {totalVencidos > 0 && (
+                <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                  {totalVencidos}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setView("estoque_baixo")}
+              className={`flex items-center justify-between px-4 py-2 rounded-xl text-sm transition-colors w-full text-left
+                ${view === "estoque_baixo" ? "bg-orange-50 text-orange-600" : "text-gray-500 hover:bg-gray-100"}`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-base">📦</span> Estoque baixo
+              </span>
+              {totalEstoqueBaixo > 0 && (
+                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
+                  {totalEstoqueBaixo}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-gray-100">
+        <button
+          onClick={() => setView("sobre")}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-left
+            ${view === "sobre" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+        >
+          <span className="text-lg">ℹ️</span> Sobre
+        </button>
+      </div>
+    </aside>
+  );
+}
