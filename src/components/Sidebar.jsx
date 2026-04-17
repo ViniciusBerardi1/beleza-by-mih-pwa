@@ -168,10 +168,18 @@ export default function Sidebar({ view, setView, produtos }) {
 
       {/* MOBILE — header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <Logo altura="h-8" />
+        <button
+          onClick={() => navegar("dashboard")}
+          className="flex items-center gap-2"
+        >
+          <img src="/logo.png" alt="Beleza by Mih" className="h-8 w-auto" />
+          <h1 className="text-base font-semibold text-gray-700">
+            Beleza by Mih
+          </h1>
+        </button>
         <button
           onClick={() => setMenuAberto(!menuAberto)}
-          className="text-gray-500 hover:text-gray-800 transition-colors p-1 text-xl"
+          className="text-gray-500 hover:text-gray-800 transition-colors p-2 text-xl border border-gray-200 rounded-lg"
         >
           {menuAberto ? "✕" : "☰"}
         </button>

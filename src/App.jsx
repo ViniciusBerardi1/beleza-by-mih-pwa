@@ -121,7 +121,7 @@ export default function App() {
         onClick={handleNovo}
         animate={{ scale: [1, 1.06, 1] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="fixed top-2 right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-2.5 md:px-6 md:py-3 rounded-2xl transition-colors shadow-lg text-sm md:text-base"
+        className="fixed top-2 right-16 md:right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-2.5 md:px-6 md:py-3 rounded-2xl transition-colors shadow-lg text-sm md:text-base"
       >
         ✨ Novo produto
       </motion.button>
