@@ -150,8 +150,13 @@ export default function ProdutoList({
                 <div className="text-xs text-gray-400 mt-0.5">
                   {p.categoria_nome} · Estoque: {p.quantidade}
                   {p.data_validade &&
-                    p.data_validade !== "" &&
                     ` · Validade: ${format(parseISO(p.data_validade), "dd/MM/yyyy", { locale: ptBR })}`}
+                  {p.avaliacao > 0 && (
+                    <span className="ml-1">
+                      · {"⭐".repeat(p.avaliacao)}
+                      {"☆".repeat(5 - p.avaliacao)}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2 items-center">

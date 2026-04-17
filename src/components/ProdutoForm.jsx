@@ -13,14 +13,17 @@ export default function ProdutoForm({
     data_validade: produto?.data_validade || "",
     quantidade: produto?.quantidade || 0,
     categoria_id: produto?.categoria_id || categorias[0]?.id || "",
-    observacoes: produto?.observacoes || "",
     tem_cor: produto?.tem_cor || 0,
     cor: produto?.cor || "",
     loja_compra: produto?.loja_compra || "sephora",
+    avaliacao: produto?.avaliacao || 0,
   });
 
   const handleSubmit = () => {
     if (!form.nome.trim()) return alert("Informe o nome do produto.");
+    if (!form.data_validade) return alert("Informe a data de validade.");
+    if (isNaN(new Date(form.data_validade).getTime()))
+      return alert("Data de validade inválida.");
     onSalvar(form);
   };
 
@@ -74,11 +77,13 @@ export default function ProdutoForm({
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="text-xs font-medium text-gray-500 mb-1 block">
-                Data de validade
+                Data de validade *
               </label>
               <input
                 type="date"
                 value={form.data_validade}
+                min="2000-01-01"
+                max="2099-12-31"
                 onChange={(e) =>
                   setForm((f) => ({ ...f, data_validade: e.target.value }))
                 }
@@ -210,16 +215,29 @@ export default function ProdutoForm({
 
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">
-              Observações
+              Avaliação do produto
             </label>
-            <textarea
-              value={form.observacoes}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, observacoes: e.target.value }))
-              }
-              rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none"
-            />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, avaliacao: star }))}
+                  className="text-2xl transition-transform hover:scale-110"
+                >
+                  {star <= (form.avaliacao || 0) ? "⭐" : "☆"}
+                </button>
+              ))}
+            </div>
+            {form.avaliacao > 0 && (
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, avaliacao: 0 }))}
+                className="text-xs text-gray-400 hover:text-red-400 mt-1"
+              >
+                Limpar avaliação
+              </button>
+            )}
           </div>
         </div>
 

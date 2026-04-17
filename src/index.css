@@ -8,3 +8,17 @@ body {
   background-color: #f9fafb;
   color: #1f2937;
 }
+
+button {
+  transition:
+    transform 0.1s ease,
+    opacity 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.93);
+  opacity: 0.75;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
