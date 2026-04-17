@@ -1,151 +1,101 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const categorias = [
-  { id: "skincare", label: "Skincare", icon: "✨" },
-  { id: "cabelo", label: "Cabelo", icon: "💇" },
-  { id: "maquiagem", label: "Maquiagem", icon: "💄" },
-  { id: "corpo", label: "Corpo", icon: "🧴" },
-  { id: "perfumaria", label: "Perfumaria", icon: "🌸" },
-  { id: "outros", label: "Outros", icon: "📦" },
-];
+export default function Sobre() {
+  const [easterEgg, setEasterEgg] = useState(false);
+  const [clicks, setClicks] = useState(0);
+  const versao = "1.0.0";
 
-export default function Sidebar({ view, setView, produtos }) {
-  const [menuAberto, setMenuAberto] = useState(false);
-  const [categoriasAberto, setCategoriasAberto] = useState(false);
-  const [alertasAberto, setAlertasAberto] = useState(false);
-
-  const totalVencendo = produtos.filter((p) => {
-    if (!p.data_validade) return false;
-    const dias = Math.ceil(
-      (new Date(p.data_validade) - new Date()) / (1000 * 60 * 60 * 24),
-    );
-    return dias >= 0 && dias <= 60;
-  }).length;
-
-  const totalVencidos = produtos.filter((p) => {
-    if (!p.data_validade) return false;
-    return new Date(p.data_validade) < new Date();
-  }).length;
-
-  const totalEstoqueBaixo = produtos.filter((p) => p.quantidade <= 1).length;
-
-  const navegar = (v) => {
-    setView(v);
-    setMenuAberto(false);
-    setCategoriasAberto(false);
-    setAlertasAberto(false);
+  const handleSecretClick = () => {
+    const novosClicks = clicks + 1;
+    setClicks(novosClicks);
+    if (novosClicks >= 5) {
+      setEasterEgg(true);
+      setClicks(0);
+    }
   };
 
   return (
-    <>
-      {/* Header mobile */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-base font-semibold text-gray-700">
-          💄 Beleza by Mih
-        </h1>
-        <button
-          onClick={() => setMenuAberto(!menuAberto)}
-          className="text-gray-500 hover:text-gray-800 transition-colors p-1"
-        >
-          {menuAberto ? "✕" : "☰"}
-        </button>
-      </header>
+    <div className="max-w-lg mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white border border-gray-200 rounded-2xl p-8 text-center"
+      >
+        <div onClick={handleSecretClick} className="cursor-default select-none">
+          <div className="text-5xl mb-4">💄</div>
+          <h1 className="text-2xl font-semibold text-gray-800 mb-1">
+            Beleza by Mih
+          </h1>
+          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+            versão {versao}
+          </span>
+        </div>
 
-      {/* Menu dropdown */}
-      {menuAberto && (
-        <div className="fixed top-12 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg px-4 py-3 flex flex-col gap-1">
-          <button
-            onClick={() => navegar("produtos")}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${view === "produtos" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
-          >
-            🧴 Todos os produtos
-          </button>
-          <button
-            onClick={() => navegar("dashboard")}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${view === "dashboard" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
-          >
-            📊 Dashboard
-          </button>
+        <p className="text-sm text-gray-500 mt-6 leading-relaxed">
+          Um sistema de gestão de estoque de produtos de beleza, desenvolvido
+          com carinho para organizar, controlar e facilitar o dia a dia de quem
+          ama beleza.
+        </p>
 
-          {/* Categorias */}
-          <button
-            onClick={() => setCategoriasAberto(!categoriasAberto)}
-            className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-full"
-          >
-            <span>Categorias</span>
-            <span>{categoriasAberto ? "▾" : "▸"}</span>
-          </button>
-          {categoriasAberto && (
-            <div className="flex flex-col gap-0.5 pl-2">
-              {categorias.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => navegar(`cat_${cat.id}`)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors w-full text-left ${view === `cat_${cat.id}` ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
-                >
-                  <span>{cat.icon}</span>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="mt-8 flex flex-col gap-4">
+          <div className="bg-rose-50 border border-rose-100 rounded-xl p-4">
+            <p className="text-xs text-rose-400 uppercase font-semibold tracking-wide mb-1">
+              Agradecimento especial
+            </p>
+            <p className="text-sm text-gray-700">
+              À <span className="font-semibold text-rose-500">Milena Tada</span>
+              , que deu vida a esse projeto com sua visão, suas ideias e sua
+              paixão por beleza. Esse app existe por você. 🌸
+            </p>
+          </div>
 
-          {/* Alertas */}
-          <button
-            onClick={() => setAlertasAberto(!alertasAberto)}
-            className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-full"
-          >
-            <span>Alertas</span>
-            <span>{alertasAberto ? "▾" : "▸"}</span>
-          </button>
-          {alertasAberto && (
-            <div className="flex flex-col gap-0.5 pl-2">
-              <button
-                onClick={() => navegar("vencendo")}
-                className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition-colors w-full text-left ${view === "vencendo" ? "bg-yellow-50 text-yellow-600" : "text-gray-500 hover:bg-gray-100"}`}
-              >
-                <span>⚠️ Vencendo</span>
-                {totalVencendo > 0 && (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">
-                    {totalVencendo}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => navegar("vencidos")}
-                className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition-colors w-full text-left ${view === "vencidos" ? "bg-red-50 text-red-600" : "text-gray-500 hover:bg-gray-100"}`}
-              >
-                <span>🔴 Vencidos</span>
-                {totalVencidos > 0 && (
-                  <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
-                    {totalVencidos}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => navegar("estoque_baixo")}
-                className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition-colors w-full text-left ${view === "estoque_baixo" ? "bg-orange-50 text-orange-600" : "text-gray-500 hover:bg-gray-100"}`}
-              >
-                <span>📦 Estoque baixo</span>
-                {totalEstoqueBaixo > 0 && (
-                  <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
-                    {totalEstoqueBaixo}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-
-          <div className="border-t border-gray-100 mt-1 pt-1">
-            <button
-              onClick={() => navegar("sobre")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${view === "sobre" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
-            >
-              ℹ️ Sobre
-            </button>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-1">
+              Desenvolvimento
+            </p>
+            <p className="text-sm text-gray-700">
+              Desenvolvido por{" "}
+              <span className="font-semibold text-gray-800">
+                Vinícius Berardi
+              </span>
+              , que transformou cada ideia em código e cada detalhe em
+              realidade. 💻
+            </p>
           </div>
         </div>
-      )}
-    </>
+
+        <p className="text-xs text-gray-300 mt-8">
+          Feito com React, Vite & IndexedDB
+        </p>
+      </motion.div>
+
+      <AnimatePresence>
+        {easterEgg && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 bg-gradient-to-br from-purple-50 to-rose-50 border border-purple-200 rounded-2xl p-6 text-center"
+          >
+            <div className="text-3xl mb-3">🤖✨</div>
+            <p className="text-xs text-purple-400 uppercase font-semibold tracking-wide mb-2">
+              Easter Egg desbloqueado
+            </p>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Todo o código deste app foi desenvolvido com a ajuda do{" "}
+              <span className="font-semibold text-purple-500">Claude</span>, a
+              IA da Anthropic. Cada componente, cada linha, cada bug corrigido —
+              uma parceria entre humano e inteligência artificial. 🧠💜
+            </p>
+            <p className="text-xs text-gray-400 mt-3">
+              (clique 5x no ícone 💄 para ver isso de novo)
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
