@@ -134,8 +134,32 @@ export default function ProdutoForm({
                     const file = e.target.files[0];
                     if (file) {
                       const reader = new FileReader();
-                      reader.onload = (ev) =>
-                        setForm((f) => ({ ...f, foto: ev.target.result }));
+                      reader.onload = (ev) => {
+                        const img = new Image();
+                        img.onload = () => {
+                          const canvas = document.createElement("canvas");
+                          const MAX = 600;
+                          let w = img.width;
+                          let h = img.height;
+                          if (w > h && w > MAX) {
+                            h = (h * MAX) / w;
+                            w = MAX;
+                          } else if (h > MAX) {
+                            w = (w * MAX) / h;
+                            h = MAX;
+                          }
+                          canvas.width = w;
+                          canvas.height = h;
+                          const ctx = canvas.getContext("2d");
+                          ctx.drawImage(img, 0, 0, w, h);
+                          const compressed = canvas.toDataURL(
+                            "image/jpeg",
+                            0.7,
+                          );
+                          setForm((f) => ({ ...f, foto: compressed }));
+                        };
+                        img.src = ev.target.result;
+                      };
                       reader.readAsDataURL(file);
                     }
                   }}
