@@ -121,12 +121,12 @@ export default function App() {
         onClick={handleNovo}
         animate={{ scale: [1, 1.06, 1] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="fixed top-2 right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-2xl transition-colors shadow-lg text-base"
+        className="fixed top-2 right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-2.5 md:px-6 md:py-3 rounded-2xl transition-colors shadow-lg text-sm md:text-base"
       >
-        ✨ + Novo produto
+        ✨ + Novo
       </motion.button>
 
-      <main className="md:ml-64 pt-16 md:pt-8 px-4 md:px-8 pb-8">
+      <main className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 pb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={view}
