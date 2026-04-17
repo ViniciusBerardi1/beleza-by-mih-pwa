@@ -71,12 +71,29 @@ export default function ProdutoList({
 }) {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [busca, setBusca] = useState("");
+  const [ordenacao, setOrdenacao] = useState("recentes");
+  const [ordem, setOrdem] = useState("desc");
 
-  const filtrados = produtos.filter((p) => {
-    const matchBusca = p.nome.toLowerCase().includes(busca.toLowerCase());
-    const matchCat = filtroCategoria ? p.categoria_id == filtroCategoria : true;
-    return matchBusca && matchCat;
-  });
+  const filtrados = produtos
+    .filter((p) => {
+      const matchBusca = p.nome.toLowerCase().includes(busca.toLowerCase());
+      const matchCat = filtroCategoria
+        ? p.categoria_id == filtroCategoria
+        : true;
+      return matchBusca && matchCat;
+    })
+    .sort((a, b) => {
+      let comparacao = 0;
+      if (ordenacao === "alfabetica") {
+        comparacao = a.nome.localeCompare(b.nome);
+      } else if (ordenacao === "recentes") {
+        comparacao =
+          new Date(a.data_cadastro || 0) - new Date(b.data_cadastro || 0);
+      } else if (ordenacao === "avaliacao") {
+        comparacao = (a.avaliacao || 0) - (b.avaliacao || 0);
+      }
+      return ordem === "desc" ? -comparacao : comparacao;
+    });
 
   return (
     <div>
@@ -92,26 +109,55 @@ export default function ProdutoList({
         )}
       </div>
 
-      <div className="flex gap-3 mb-5">
-        <input
-          type="text"
-          placeholder="Buscar produto..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
-        />
-        <select
-          value={filtroCategoria}
-          onChange={(e) => setFiltroCategoria(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
-        >
-          <option value="">Todas as categorias</option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome}
-            </option>
+      <div className="flex flex-col gap-3 mb-5">
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder="Buscar produto..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+          />
+          <select
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+          >
+            <option value="">Todas as categorias</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex gap-2">
+          {[
+            { id: "recentes", label: "🕐 Recentes" },
+            { id: "alfabetica", label: "🔤 A-Z" },
+            { id: "avaliacao", label: "⭐ Avaliação" },
+          ].map((op) => (
+            <button
+              key={op.id}
+              onClick={() => {
+                if (ordenacao === op.id) {
+                  setOrdem((o) => (o === "asc" ? "desc" : "asc"));
+                } else {
+                  setOrdenacao(op.id);
+                  setOrdem("desc");
+                }
+              }}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors
+                ${ordenacao === op.id ? "bg-rose-50 border-rose-300 text-rose-600" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+            >
+              {op.label}
+              {ordenacao === op.id && (
+                <span>{ordem === "desc" ? "↓" : "↑"}</span>
+              )}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {filtrados.length === 0 ? (
