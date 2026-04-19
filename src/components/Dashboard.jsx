@@ -22,7 +22,7 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
     (p) =>
       p.data_validade && differenceInDays(parseISO(p.data_validade), hoje) < 0,
   );
-  const estoqueBaixo = produtos.filter((p) => p.quantidade <= 1);
+  const estoqueBaixo = produtos.filter((p) => p.quantidade <= (p.estoque_minimo ?? 1));
 
   const porCategoria = useMemo(() => {
     const contagem = produtos.reduce((acc, p) => {
@@ -43,14 +43,16 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
   }, [produtos, categorias]);
 
 
-  const proximosVencer = [...produtos]
-    .filter(
-      (p) =>
-        p.data_validade &&
-        differenceInDays(parseISO(p.data_validade), hoje) >= 0,
-    )
-    .sort((a, b) => new Date(a.data_validade) - new Date(b.data_validade))
-    .slice(0, 4);
+  const todosVencendo = [...produtos]
+    .filter((p) => {
+      if (!p.data_validade) return false;
+      const dias = differenceInDays(parseISO(p.data_validade), hoje);
+      return dias >= 0 && dias <= 60;
+    })
+    .sort((a, b) => new Date(a.data_validade) - new Date(b.data_validade));
+
+  const proximosVencer = todosVencendo.slice(0, 4);
+  const totalVencendo = todosVencendo.length;
 
   const cards = [
     {
@@ -172,9 +174,19 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
           transition={{ duration: 0.25, delay: 0.35 }}
           className="bg-white border border-gray-200 rounded-xl p-4"
         >
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Próximos a vencer
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Próximos a vencer
+            </h3>
+            {totalVencendo > 4 && (
+              <button
+                onClick={() => setView("vencendo")}
+                className="text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
+              >
+                Ver todos ({totalVencendo}) →
+              </button>
+            )}
+          </div>
           {proximosVencer.length === 0 ? (
             <p className="text-xs text-gray-400">
               Nenhum produto com validade cadastrada.

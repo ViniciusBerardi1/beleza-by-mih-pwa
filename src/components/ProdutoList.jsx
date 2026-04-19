@@ -1,9 +1,9 @@
-import { useState, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
+import { AnimatePresence } from "framer-motion";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
-
-const ESTOQUE_BAIXO = 1;
+import ProdutoDetalhe from "./ProdutoDetalhe";
 
 function StatusBadge({ dataValidade }) {
   if (!dataValidade || dataValidade === "") return null;
@@ -31,8 +31,8 @@ function StatusBadge({ dataValidade }) {
   }
 }
 
-function EstoqueBadge({ quantidade }) {
-  if (quantidade <= ESTOQUE_BAIXO)
+function EstoqueBadge({ quantidade, estoqueMinimo }) {
+  if (quantidade <= estoqueMinimo)
     return (
       <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 font-medium">
         Estoque baixo
@@ -52,11 +52,56 @@ function BotaoComprar({ nome, loja }) {
   const url = urls[loja] || urls.sephora;
   return (
     <button
-      onClick={() => window.open(url, "_blank")}
+      onClick={(e) => { e.stopPropagation(); window.open(url, "_blank"); }}
       className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors"
     >
       🛍️ Comprar
     </button>
+  );
+}
+
+function ControladorQuantidade({ produto, onAtualizar }) {
+  const [qtd, setQtd] = useState(produto.quantidade);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    setQtd(produto.quantidade);
+  }, [produto.quantidade]);
+
+  const alterar = (delta) => {
+    const nova = Math.max(0, qtd + delta);
+    setQtd(nova);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => onAtualizar(produto, nova), 600);
+  };
+
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => alterar(-1)}
+        className="w-8 h-8 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-500 hover:text-rose-500 text-base flex items-center justify-center transition-colors font-bold leading-none"
+      >
+        −
+      </button>
+      <motion.span
+        key={qtd}
+        initial={{ scale: 1.35 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.15 }}
+        className="text-sm font-semibold text-gray-700 w-5 text-center"
+      >
+        {qtd}
+      </motion.span>
+      <button
+        onClick={() => alterar(1)}
+        className="w-8 h-8 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-500 hover:text-rose-500 text-base flex items-center justify-center transition-colors font-bold leading-none"
+      >
+        +
+      </button>
+    </div>
   );
 }
 
@@ -68,11 +113,13 @@ function ProdutoList({
   onDeletar,
   onNovo,
   mostrarBotaoNovo,
+  onAtualizarQuantidade,
 }) {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [busca, setBusca] = useState("");
   const [ordenacao, setOrdenacao] = useState("recentes");
   const [ordem, setOrdem] = useState("desc");
+  const [produtoAberto, setProdutoAberto] = useState(null);
 
   const filtrados = produtos
     .filter((p) => {
@@ -153,9 +200,30 @@ function ProdutoList({
       </div>
 
       {filtrados.length === 0 ? (
-        <div className="text-center text-gray-400 py-16 text-sm">
-          Nenhum produto encontrado.
-        </div>
+        produtos.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center justify-center py-20 text-center gap-4"
+          >
+            <span className="text-5xl">🧴</span>
+            <div>
+              <p className="text-gray-700 font-medium text-base">Nenhum produto por aqui</p>
+              <p className="text-gray-400 text-sm mt-1">Adicione seu primeiro produto para começar</p>
+            </div>
+            <button
+              onClick={onNovo}
+              className="mt-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold px-5 py-2.5 rounded-2xl transition-colors shadow-sm"
+            >
+              ✨ Adicionar produto
+            </button>
+          </motion.div>
+        ) : (
+          <div className="text-center text-gray-400 py-16 text-sm">
+            Nenhum resultado para a busca.
+          </div>
+        )
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {filtrados.map((p, i) => (
@@ -164,7 +232,8 @@ function ProdutoList({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: i * 0.05 }}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3"
+              className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer active:brightness-95"
+              onClick={() => setProdutoAberto(p)}
             >
               {p.foto ? (
                 <img
@@ -187,23 +256,23 @@ function ProdutoList({
                       : ""}
                   </span>
                   <StatusBadge dataValidade={p.data_validade} />
-                  <EstoqueBadge quantidade={p.quantidade} />
+                  <EstoqueBadge quantidade={p.quantidade} estoqueMinimo={p.estoque_minimo ?? 1} />
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5 truncate">
-                  {p.categoria_nome} · {p.quantidade} un
+                <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1 flex-wrap">
+                  <span>{p.categoria_nome}</span>
                   {p.data_validade &&
-                    ` · ${format(parseISO(p.data_validade), "dd/MM/yy", { locale: ptBR })}`}
-                  {p.avaliacao > 0 && ` · ${"⭐".repeat(p.avaliacao)}`}
+                    <span>· {format(parseISO(p.data_validade), "dd/MM/yy", { locale: ptBR })}</span>}
+                  {p.avaliacao > 0 && <span>· {"⭐".repeat(p.avaliacao)}</span>}
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5 items-end shrink-0">
-                {(p.quantidade <= ESTOQUE_BAIXO ||
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <ControladorQuantidade produto={p} onAtualizar={onAtualizarQuantidade} />
+                {(p.quantidade <= (p.estoque_minimo ?? 1) ||
                   (p.data_validade &&
-                    differenceInDays(parseISO(p.data_validade), new Date()) <
-                      0)) && (
+                    differenceInDays(parseISO(p.data_validade), new Date()) < 0)) && (
                   <BotaoComprar nome={p.nome} loja={p.loja_compra} />
                 )}
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onEditar(p)}
                     className="text-xs text-gray-400 hover:text-rose-500 transition-colors"
@@ -222,6 +291,16 @@ function ProdutoList({
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {produtoAberto && (
+          <ProdutoDetalhe
+            produto={produtoAberto}
+            onFechar={() => setProdutoAberto(null)}
+            onEditar={onEditar}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

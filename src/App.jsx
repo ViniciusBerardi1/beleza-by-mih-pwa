@@ -99,6 +99,11 @@ export default function App() {
     setShowForm(true);
   }, []);
 
+  const handleAtualizarQuantidade = useCallback(async (produto, quantidade) => {
+    await db.updateProduto({ ...produto, quantidade });
+    await carregar();
+  }, [carregar]);
+
   const alertas = useMemo(() => {
     const hoje = new Date();
     return {
@@ -111,7 +116,7 @@ export default function App() {
         if (!p.data_validade) return false;
         return differenceInDays(parseISO(p.data_validade), hoje) < 0;
       }).length,
-      estoqueBaixo: produtos.filter((p) => p.quantidade <= 1).length,
+      estoqueBaixo: produtos.filter((p) => p.quantidade <= (p.estoque_minimo ?? 1)).length,
     };
   }, [produtos]);
 
@@ -131,7 +136,7 @@ export default function App() {
       });
     }
     if (view === "estoque_baixo") {
-      return produtos.filter((p) => p.quantidade <= 1);
+      return produtos.filter((p) => p.quantidade <= (p.estoque_minimo ?? 1));
     }
     if (view.startsWith("cat_")) {
       const nomeCategoria = CATEGORIAS_MAP[view];
@@ -187,6 +192,7 @@ export default function App() {
                 onEditar={handleEditar}
                 onDeletar={handleDeletar}
                 onNovo={handleNovo}
+                onAtualizarQuantidade={handleAtualizarQuantidade}
                 mostrarBotaoNovo={view === "produtos"}
               />
             )}

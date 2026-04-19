@@ -12,6 +12,7 @@ export default function ProdutoForm({
     foto: produto?.foto || "",
     data_validade: produto?.data_validade || "",
     quantidade: produto?.quantidade || 0,
+    estoque_minimo: produto?.estoque_minimo ?? 1,
     categoria_id: produto?.categoria_id || categorias[0]?.id || "",
     tem_cor: produto?.tem_cor || 0,
     cor: produto?.cor || "",
@@ -93,7 +94,7 @@ export default function ProdutoForm({
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
               />
             </div>
-            <div className="w-28">
+            <div className="w-24">
               <label className="text-xs font-medium text-gray-500 mb-1 block">
                 Quantidade
               </label>
@@ -105,6 +106,23 @@ export default function ProdutoForm({
                   setForm((f) => ({
                     ...f,
                     quantidade: parseInt(e.target.value) || 0,
+                  }))
+                }
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+              />
+            </div>
+            <div className="w-24">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">
+                Mín. repor
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.estoque_minimo}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    estoque_minimo: parseInt(e.target.value) || 0,
                   }))
                 }
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
