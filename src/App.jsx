@@ -5,6 +5,7 @@ import ProdutoList from "./components/ProdutoList";
 import ProdutoForm from "./components/ProdutoForm";
 import Dashboard from "./components/Dashboard";
 import Sobre from "./components/Sobre";
+import Historico from "./components/Historico";
 import Toast from "./components/Toast";
 import ConfirmModal from "./components/ConfirmModal";
 import { differenceInDays, parseISO } from "date-fns";
@@ -24,6 +25,7 @@ const TITULO_VIEW = {
   vencendo: "⚠️ Vencendo em breve",
   vencidos: "🔴 Produtos Vencidos",
   estoque_baixo: "📦 Estoque Baixo",
+  historico: "📋 Histórico de consumo",
   cat_skincare: "Skincare",
   cat_cabelo: "Cabelo",
   cat_maquiagem: "Maquiagem",
@@ -105,6 +107,16 @@ export default function App() {
 
   const handleAtualizarQuantidade = useCallback(async (produto, quantidade) => {
     await db.updateProduto({ ...produto, quantidade });
+    if (quantidade === 0) {
+      await db.addHistorico({
+        produto_id: produto.id,
+        produto_nome: produto.nome,
+        produto_cor: produto.cor || "",
+        categoria_nome: produto.categoria_nome || "",
+        foto: produto.foto || "",
+        data_zerado: new Date().toISOString(),
+      });
+    }
     await carregar();
   }, [carregar]);
 
@@ -155,19 +167,20 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Sidebar view={view} setView={setView} alertas={alertas} />
 
-      <motion.button
-        onClick={handleNovo}
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.08, 1, 1.08, 1, 1.08, 1] }}
-        transition={{
-          duration: 1.2,
-          ease: "easeInOut",
-          times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1],
-        }}
-        className="fixed top-2 right-14 md:right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 h-10 rounded-2xl transition-colors shadow-lg text-sm md:text-base flex items-center"
-      >
-        ✨ Novo produto
-      </motion.button>
+      <AnimatePresence>
+        {(view === "produtos" || view.startsWith("cat_")) && (
+          <motion.button
+            onClick={handleNovo}
+            initial={{ opacity: 0, scale: 0.8, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed top-2 right-14 md:right-4 z-50 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 h-10 rounded-2xl transition-colors shadow-lg text-sm md:text-base flex items-center"
+          >
+            ✨ Novo produto
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <main className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 pb-8">
         <AnimatePresence mode="wait">
@@ -181,6 +194,8 @@ export default function App() {
           >
             {view === "sobre" ? (
               <Sobre />
+            ) : view === "historico" ? (
+              <Historico />
             ) : view === "dashboard" ? (
               <Dashboard
                 produtos={produtos}

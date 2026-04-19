@@ -1,5 +1,5 @@
 const DB_NAME = "beleza-by-mih";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -35,6 +35,10 @@ function openDB() {
           autoIncrement: true,
         });
         prod.createIndex("categoria_id", "categoria_id", { unique: false });
+      }
+
+      if (!db.objectStoreNames.contains("historico")) {
+        db.createObjectStore("historico", { keyPath: "id", autoIncrement: true });
       }
     };
 
@@ -97,6 +101,33 @@ export const db = {
           const tx = db.transaction("produtos", "readwrite");
           const req = tx.objectStore("produtos").put(p);
           req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
+
+  addHistorico: (entrada) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("historico", "readwrite");
+          const req = tx.objectStore("historico").add(entrada);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
+
+  getHistorico: () =>
+    getAll("historico").then((lista) =>
+      lista.sort((a, b) => new Date(b.data_zerado) - new Date(a.data_zerado))
+    ),
+
+  limparHistorico: () =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("historico", "readwrite");
+          const req = tx.objectStore("historico").clear();
+          req.onsuccess = () => resolve();
           req.onerror = () => reject(req.error);
         }),
     ),

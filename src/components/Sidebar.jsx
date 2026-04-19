@@ -66,6 +66,14 @@ function Sidebar({ view, setView, alertas }) {
         <span className="text-lg">📊</span> Dashboard
       </button>
 
+      <button
+        onClick={() => navegar("historico")}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-left
+          ${view === "historico" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+      >
+        <span className="text-lg">📋</span> Histórico
+      </button>
+
       <div className="mt-3">
         <button
           onClick={() => setCategoriasAberto(!categoriasAberto)}

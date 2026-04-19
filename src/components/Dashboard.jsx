@@ -1,6 +1,6 @@
-import { useMemo, memo } from "react";
+import { useMemo, memo, useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function urlLoja(nome, loja) {
   const busca = encodeURIComponent(nome);
@@ -14,6 +14,7 @@ function urlLoja(nome, loja) {
 }
 
 function Dashboard({ produtos, categorias, setView, carregando }) {
+  const [listaAberta, setListaAberta] = useState(false);
   const hoje = new Date();
 
   const totalProdutos = produtos.length;
@@ -53,6 +54,26 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
 
   const proximosVencer = todosVencendo.slice(0, 4);
   const totalVencendo = todosVencendo.length;
+
+  const listaDeCompras = useMemo(() => {
+    const precisam = produtos.filter((p) => p.quantidade === 0);
+
+    const porCategoria = {};
+    for (const p of precisam) {
+      const cat = p.categoria_nome || "Outros";
+      if (!porCategoria[cat]) porCategoria[cat] = [];
+      porCategoria[cat].push(p);
+    }
+    for (const cat of Object.keys(porCategoria)) {
+      porCategoria[cat].sort((a, b) => (b.avaliacao || 0) - (a.avaliacao || 0));
+    }
+    return porCategoria;
+  }, [produtos]);
+
+  const totalLista = useMemo(
+    () => Object.values(listaDeCompras).reduce((acc, arr) => acc + arr.length, 0),
+    [listaDeCompras]
+  );
 
   const cards = [
     {
@@ -237,6 +258,83 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
           )}
         </motion.div>
       </div>
+
+      {/* Lista de compras */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.42 }}
+        className="bg-white border border-gray-200 rounded-xl p-4"
+      >
+        <button
+          onClick={() => setListaAberta(!listaAberta)}
+          className="w-full flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700">🛒 Lista de compras</h3>
+            {totalLista > 0 && (
+              <span className="text-xs bg-rose-100 text-rose-600 font-semibold px-2 py-0.5 rounded-full">
+                {totalLista}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-gray-400">{listaAberta ? "▲ Fechar" : "▼ Ver lista"}</span>
+        </button>
+
+        <AnimatePresence>
+          {listaAberta && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              {totalLista === 0 ? (
+                <p className="text-xs text-gray-400 mt-3">Nenhum produto para comprar. 🎉</p>
+              ) : (
+                <div className="mt-3 flex flex-col gap-4">
+                  {Object.entries(listaDeCompras).map(([categoria, itens]) => (
+                    <div key={categoria}>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                        {categoria}
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {itens.map((p) => (
+                          <div
+                            key={p.id}
+                            className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-sm text-gray-700 font-medium truncate">
+                                  {p.tem_cor && p.cor ? `${p.nome} — ${p.cor}` : p.nome}
+                                </span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  {p.avaliacao > 0 && (
+                                    <span className="text-xs text-yellow-500">{"⭐".repeat(p.avaliacao)}</span>
+                                  )}
+                                  <span className="text-xs text-gray-400">sem estoque</span>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => window.open(urlLoja(p.nome, p.loja_compra), "_blank")}
+                              className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-2"
+                            >
+                              🛍️ Comprar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Produtos para repor */}
       <motion.div
