@@ -60,7 +60,7 @@ function BotaoComprar({ nome, loja }) {
   );
 }
 
-function ControladorQuantidade({ produto, onAtualizar }) {
+function ControladorQuantidade({ produto, onAtualizar, onDeletar }) {
   const [qtd, setQtd] = useState(produto.quantidade);
   const timerRef = useRef(null);
 
@@ -69,6 +69,10 @@ function ControladorQuantidade({ produto, onAtualizar }) {
   }, [produto.quantidade]);
 
   const alterar = (delta) => {
+    if (delta === -1 && qtd === 0) {
+      onDeletar(produto.id);
+      return;
+    }
     const nova = Math.max(0, qtd + delta);
     setQtd(nova);
     clearTimeout(timerRef.current);
@@ -130,6 +134,9 @@ function ProdutoList({
       return matchBusca && matchCat;
     })
     .sort((a, b) => {
+      const aZero = a.quantidade === 0 ? 1 : 0;
+      const bZero = b.quantidade === 0 ? 1 : 0;
+      if (aZero !== bZero) return aZero - bZero;
       let comparacao = 0;
       if (ordenacao === "alfabetica") {
         comparacao = a.nome.localeCompare(b.nome);
@@ -225,13 +232,16 @@ function ProdutoList({
           </div>
         )
       ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {filtrados.map((p, i) => (
+        <motion.div layout className="grid grid-cols-1 gap-3">
+          <AnimatePresence initial={false}>
+          {filtrados.map((p) => (
             <motion.div
               key={p.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, delay: i * 0.05 }}
+              layout
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
               className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer active:brightness-95"
               onClick={() => setProdutoAberto(p)}
             >
@@ -266,7 +276,7 @@ function ProdutoList({
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <ControladorQuantidade produto={p} onAtualizar={onAtualizarQuantidade} />
+                <ControladorQuantidade produto={p} onAtualizar={onAtualizarQuantidade} onDeletar={onDeletar} />
                 {(p.quantidade <= (p.estoque_minimo ?? 1) ||
                   (p.data_validade &&
                     differenceInDays(parseISO(p.data_validade), new Date()) < 0)) && (
@@ -289,7 +299,8 @@ function ProdutoList({
               </div>
             </motion.div>
           ))}
-        </div>
+          </AnimatePresence>
+        </motion.div>
       )}
 
       <AnimatePresence>

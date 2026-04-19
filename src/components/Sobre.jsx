@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Sobre() {
   const [easterEgg, setEasterEgg] = useState(false);
   const [clicks, setClicks] = useState(0);
-  const versao = "1.0.0";
+  const versao = "1.5.0";
 
   const handleSecretClick = () => {
     const novosClicks = clicks + 1;
