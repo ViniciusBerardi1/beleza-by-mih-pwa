@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "preinstall": "npm config set legacy-peer-deps true",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -26,8 +25,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^4.2.2",
+"tailwindcss": "^4.2.2",
     "vite": "^8.0.4"
   }
 }
