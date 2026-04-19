@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -60,7 +60,7 @@ function BotaoComprar({ nome, loja }) {
   );
 }
 
-export default function ProdutoList({
+function ProdutoList({
   titulo,
   produtos,
   categorias,
@@ -225,3 +225,5 @@ export default function ProdutoList({
     </div>
   );
 }
+
+export default memo(ProdutoList);

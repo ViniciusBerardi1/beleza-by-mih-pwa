@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Home } from "lucide-react";
-import { differenceInDays, parseISO } from "date-fns";
 
 const categorias = [
   { id: "skincare", label: "Skincare", icon: "✨" },
@@ -11,25 +10,14 @@ const categorias = [
   { id: "outros", label: "Outros", icon: "📦" },
 ];
 
-export default function Sidebar({ view, setView, produtos }) {
+function Sidebar({ view, setView, alertas }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [categoriasAberto, setCategoriasAberto] = useState(true);
   const [alertasAberto, setAlertasAberto] = useState(true);
 
-  const totalVencendo = (produtos || []).filter((p) => {
-    if (!p.data_validade) return false;
-    const dias = differenceInDays(parseISO(p.data_validade), new Date());
-    return dias >= 0 && dias <= 60;
-  }).length;
-
-  const totalVencidos = (produtos || []).filter((p) => {
-    if (!p.data_validade) return false;
-    return differenceInDays(parseISO(p.data_validade), new Date()) < 0;
-  }).length;
-
-  const totalEstoqueBaixo = (produtos || []).filter(
-    (p) => p.quantidade <= 1,
-  ).length;
+  const totalVencendo = alertas?.vencendo ?? 0;
+  const totalVencidos = alertas?.vencidos ?? 0;
+  const totalEstoqueBaixo = alertas?.estoqueBaixo ?? 0;
 
   const navegar = (v) => {
     setView(v);
@@ -209,3 +197,5 @@ export default function Sidebar({ view, setView, produtos }) {
     </>
   );
 }
+
+export default memo(Sidebar);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./components/Sidebar";
 import ProdutoList from "./components/ProdutoList";
@@ -11,6 +11,19 @@ import { differenceInDays, parseISO } from "date-fns";
 import { db } from "./db";
 
 const CATEGORIAS_MAP = {
+  cat_skincare: "Skincare",
+  cat_cabelo: "Cabelo",
+  cat_maquiagem: "Maquiagem",
+  cat_corpo: "Corpo",
+  cat_perfumaria: "Perfumaria",
+  cat_outros: "Outros",
+};
+
+const TITULO_VIEW = {
+  produtos: "Todos os Produtos",
+  vencendo: "⚠️ Vencendo em breve",
+  vencidos: "🔴 Produtos Vencidos",
+  estoque_baixo: "📦 Estoque Baixo",
   cat_skincare: "Skincare",
   cat_cabelo: "Cabelo",
   cat_maquiagem: "Maquiagem",
@@ -37,18 +50,18 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [confirmandoId, setConfirmandoId] = useState(null);
 
-  const carregar = async () => {
+  const carregar = useCallback(async () => {
     const [p, c] = await Promise.all([db.getProdutos(), db.getCategorias()]);
     setProdutos(p);
     setCategorias(c);
     setCarregando(false);
-  };
+  }, []);
 
   useEffect(() => {
     carregar();
-  }, []);
+  }, [carregar]);
 
-  const handleSalvar = async (produto) => {
+  const handleSalvar = useCallback(async (produto) => {
     try {
       if (produto.id) {
         await db.updateProduto(produto);
@@ -63,30 +76,46 @@ export default function App() {
     } catch (err) {
       console.error("erro ao salvar:", err);
     }
-  };
+  }, [carregar]);
 
-  const handleEditar = (produto) => {
+  const handleEditar = useCallback((produto) => {
     setEditando(produto);
     setShowForm(true);
-  };
+  }, []);
 
-  const handleDeletar = (id) => {
+  const handleDeletar = useCallback((id) => {
     setConfirmandoId(id);
-  };
+  }, []);
 
-  const confirmarDelete = async () => {
+  const confirmarDelete = useCallback(async () => {
     await db.deleteProduto(confirmandoId);
     await carregar();
     setConfirmandoId(null);
     setToast("Produto removido.");
-  };
+  }, [confirmandoId, carregar]);
 
-  const handleNovo = () => {
+  const handleNovo = useCallback(() => {
     setEditando(null);
     setShowForm(true);
-  };
+  }, []);
 
-  const produtosFiltrados = () => {
+  const alertas = useMemo(() => {
+    const hoje = new Date();
+    return {
+      vencendo: produtos.filter((p) => {
+        if (!p.data_validade) return false;
+        const dias = differenceInDays(parseISO(p.data_validade), hoje);
+        return dias >= 0 && dias <= 60;
+      }).length,
+      vencidos: produtos.filter((p) => {
+        if (!p.data_validade) return false;
+        return differenceInDays(parseISO(p.data_validade), hoje) < 0;
+      }).length,
+      estoqueBaixo: produtos.filter((p) => p.quantidade <= 1).length,
+    };
+  }, [produtos]);
+
+  const produtosFiltrados = useMemo(() => {
     const hoje = new Date();
     if (view === "vencendo") {
       return produtos.filter((p) => {
@@ -111,23 +140,12 @@ export default function App() {
       );
     }
     return produtos;
-  };
-
-  const tituloView = {
-    produtos: "Todos os Produtos",
-    vencendo: "⚠️ Vencendo em breve",
-    vencidos: "🔴 Produtos Vencidos",
-    estoque_baixo: "📦 Estoque Baixo",
-    ...Object.fromEntries(
-      Object.entries(CATEGORIAS_MAP).map(([k, v]) => [k, v]),
-    ),
-  };
+  }, [view, produtos]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
-      <Sidebar view={view} setView={setView} produtos={produtos} />
+      <Sidebar view={view} setView={setView} alertas={alertas} />
 
-      {/* Botão fixo no canto superior direito */}
       <motion.button
         onClick={handleNovo}
         initial={{ scale: 1 }}
@@ -163,8 +181,8 @@ export default function App() {
               />
             ) : (
               <ProdutoList
-                titulo={tituloView[view] || "Produtos"}
-                produtos={produtosFiltrados()}
+                titulo={TITULO_VIEW[view] || "Produtos"}
+                produtos={produtosFiltrados}
                 categorias={categorias}
                 onEditar={handleEditar}
                 onDeletar={handleDeletar}

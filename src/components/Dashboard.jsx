@@ -1,3 +1,4 @@
+import { useMemo, memo } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -12,7 +13,7 @@ function urlLoja(nome, loja) {
   return urls[loja] || urls.sephora;
 }
 
-export default function Dashboard({ produtos, categorias, setView, carregando }) {
+function Dashboard({ produtos, categorias, setView, carregando }) {
   const hoje = new Date();
 
   const totalProdutos = produtos.length;
@@ -23,16 +24,23 @@ export default function Dashboard({ produtos, categorias, setView, carregando })
   );
   const estoqueBaixo = produtos.filter((p) => p.quantidade <= 1);
 
-  const porCategoria = categorias
-    .map((cat) => ({
-      ...cat,
-      total: produtos.filter((p) => Number(p.categoria_id) === cat.id).length,
-      itens: produtos
-        .filter((p) => Number(p.categoria_id) === cat.id)
-        .reduce((acc, p) => acc + (p.quantidade || 0), 0),
-    }))
-    .filter((c) => c.total > 0)
-    .sort((a, b) => b.total - a.total);
+  const porCategoria = useMemo(() => {
+    const contagem = produtos.reduce((acc, p) => {
+      const id = Number(p.categoria_id);
+      if (!acc[id]) acc[id] = { total: 0, itens: 0 };
+      acc[id].total += 1;
+      acc[id].itens += p.quantidade || 0;
+      return acc;
+    }, {});
+    return categorias
+      .map((cat) => ({
+        ...cat,
+        total: contagem[cat.id]?.total || 0,
+        itens: contagem[cat.id]?.itens || 0,
+      }))
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [produtos, categorias]);
 
 
   const proximosVencer = [...produtos]
@@ -279,3 +287,5 @@ export default function Dashboard({ produtos, categorias, setView, carregando })
     </div>
   );
 }
+
+export default memo(Dashboard);
