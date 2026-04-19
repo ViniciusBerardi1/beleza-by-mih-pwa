@@ -65,7 +65,7 @@ export default function ProdutoForm({
             <select
               value={form.categoria_id}
               onChange={(e) =>
-                setForm((f) => ({ ...f, categoria_id: e.target.value }))
+                setForm((f) => ({ ...f, categoria_id: Number(e.target.value) }))
               }
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
             >

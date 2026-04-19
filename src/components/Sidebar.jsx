@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Home } from "lucide-react";
+import { differenceInDays, parseISO } from "date-fns";
 
 const categorias = [
   { id: "skincare", label: "Skincare", icon: "✨" },
@@ -17,15 +18,13 @@ export default function Sidebar({ view, setView, produtos }) {
 
   const totalVencendo = (produtos || []).filter((p) => {
     if (!p.data_validade) return false;
-    const dias = Math.ceil(
-      (new Date(p.data_validade) - new Date()) / (1000 * 60 * 60 * 24),
-    );
+    const dias = differenceInDays(parseISO(p.data_validade), new Date());
     return dias >= 0 && dias <= 60;
   }).length;
 
   const totalVencidos = (produtos || []).filter((p) => {
     if (!p.data_validade) return false;
-    return new Date(p.data_validade) < new Date();
+    return differenceInDays(parseISO(p.data_validade), new Date()) < 0;
   }).length;
 
   const totalEstoqueBaixo = (produtos || []).filter(

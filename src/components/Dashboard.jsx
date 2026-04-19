@@ -1,7 +1,18 @@
 import { differenceInDays, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 
-export default function Dashboard({ produtos, categorias, setView }) {
+function urlLoja(nome, loja) {
+  const busca = encodeURIComponent(nome);
+  const urls = {
+    sephora: `https://www.sephora.com.br/search?q=${busca}`,
+    belezanaweb: `https://www.belezanaweb.com.br/busca?q=${busca}`,
+    epoca: `https://www.epocacosmeticos.com.br/busca?q=${busca}`,
+    boticario: `https://www.boticario.com.br/busca?q=${busca}`,
+  };
+  return urls[loja] || urls.sephora;
+}
+
+export default function Dashboard({ produtos, categorias, setView, carregando }) {
   const hoje = new Date();
 
   const totalProdutos = produtos.length;
@@ -15,12 +26,14 @@ export default function Dashboard({ produtos, categorias, setView }) {
   const porCategoria = categorias
     .map((cat) => ({
       ...cat,
-      total: produtos.filter((p) => p.categoria_id === cat.id).length,
+      total: produtos.filter((p) => Number(p.categoria_id) === cat.id).length,
       itens: produtos
-        .filter((p) => p.categoria_id === cat.id)
+        .filter((p) => Number(p.categoria_id) === cat.id)
         .reduce((acc, p) => acc + (p.quantidade || 0), 0),
     }))
-    .filter((c) => c.total > 0);
+    .filter((c) => c.total > 0)
+    .sort((a, b) => b.total - a.total);
+
 
   const proximosVencer = [...produtos]
     .filter(
@@ -109,7 +122,9 @@ export default function Dashboard({ produtos, categorias, setView }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Produtos por categoria
           </h3>
-          {porCategoria.length === 0 ? (
+          {carregando ? (
+            <p className="text-xs text-gray-400 animate-pulse">Carregando...</p>
+          ) : porCategoria.length === 0 ? (
             <p className="text-xs text-gray-400">Nenhum produto cadastrado.</p>
           ) : (
             <div className="flex flex-col gap-3">
@@ -123,7 +138,7 @@ export default function Dashboard({ produtos, categorias, setView }) {
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
                     <span>{cat.nome}</span>
                     <span>
-                      {cat.total} · {cat.itens} itens
+                      {cat.total} de {totalProdutos}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -131,7 +146,7 @@ export default function Dashboard({ produtos, categorias, setView }) {
                       className="bg-rose-400 h-1.5 rounded-full"
                       initial={{ width: 0 }}
                       animate={{
-                        width: `${Math.min((cat.total / totalProdutos) * 100, 100)}%`,
+                        width: `${(cat.total / totalProdutos) * 100}%`,
                       }}
                       transition={{ duration: 0.5, delay: 0.4 + i * 0.05 }}
                     />
@@ -250,10 +265,7 @@ export default function Dashboard({ produtos, categorias, setView }) {
                 </div>
                 <button
                   onClick={() =>
-                    window.open(
-                      `https://www.sephora.com.br/search?q=${encodeURIComponent(p.nome)}`,
-                      "_blank",
-                    )
+                    window.open(urlLoja(p.nome, p.loja_compra), "_blank")
                   }
                   className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-2"
                 >

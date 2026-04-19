@@ -5,6 +5,8 @@ import ProdutoList from "./components/ProdutoList";
 import ProdutoForm from "./components/ProdutoForm";
 import Dashboard from "./components/Dashboard";
 import Sobre from "./components/Sobre";
+import Toast from "./components/Toast";
+import ConfirmModal from "./components/ConfirmModal";
 import { differenceInDays, parseISO } from "date-fns";
 import { db } from "./db";
 
@@ -29,14 +31,17 @@ export default function App() {
   const [view, setView] = useState("dashboard");
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [carregando, setCarregando] = useState(true);
   const [editando, setEditando] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [confirmandoId, setConfirmandoId] = useState(null);
 
   const carregar = async () => {
-    const p = await db.getProdutos();
-    const c = await db.getCategorias();
+    const [p, c] = await Promise.all([db.getProdutos(), db.getCategorias()]);
     setProdutos(p);
     setCategorias(c);
+    setCarregando(false);
   };
 
   useEffect(() => {
@@ -47,8 +52,10 @@ export default function App() {
     try {
       if (produto.id) {
         await db.updateProduto(produto);
+        setToast("Produto atualizado!");
       } else {
         await db.addProduto(produto);
+        setToast("Produto adicionado!");
       }
       await carregar();
       setShowForm(false);
@@ -63,11 +70,15 @@ export default function App() {
     setShowForm(true);
   };
 
-  const handleDeletar = async (id) => {
-    if (confirm("Remover este produto?")) {
-      await db.deleteProduto(id);
-      await carregar();
-    }
+  const handleDeletar = (id) => {
+    setConfirmandoId(id);
+  };
+
+  const confirmarDelete = async () => {
+    await db.deleteProduto(confirmandoId);
+    await carregar();
+    setConfirmandoId(null);
+    setToast("Produto removido.");
   };
 
   const handleNovo = () => {
@@ -148,6 +159,7 @@ export default function App() {
                 produtos={produtos}
                 categorias={categorias}
                 setView={setView}
+                carregando={carregando}
               />
             ) : (
               <ProdutoList
@@ -182,6 +194,21 @@ export default function App() {
               }}
             />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confirmandoId && (
+          <ConfirmModal
+            onConfirmar={confirmarDelete}
+            onCancelar={() => setConfirmandoId(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <Toast mensagem={toast} onFechar={() => setToast(null)} />
         )}
       </AnimatePresence>
     </div>
