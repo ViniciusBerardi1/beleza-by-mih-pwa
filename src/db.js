@@ -67,7 +67,7 @@ export const db = {
       .map((p) => ({
         ...p,
         categoria_nome:
-          categorias.find((c) => c.id == p.categoria_id)?.nome || "",
+          categorias.find((c) => c.id === p.categoria_id)?.nome || "",
       }))
       .sort((a, b) => {
         if (!a.data_validade) return 1;

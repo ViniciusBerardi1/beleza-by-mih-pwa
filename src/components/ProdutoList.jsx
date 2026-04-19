@@ -78,7 +78,7 @@ export default function ProdutoList({
     .filter((p) => {
       const matchBusca = p.nome.toLowerCase().includes(busca.toLowerCase());
       const matchCat = filtroCategoria
-        ? p.categoria_id == filtroCategoria
+        ? p.categoria_id === Number(filtroCategoria)
         : true;
       return matchBusca && matchCat;
     })
