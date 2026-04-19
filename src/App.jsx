@@ -7,7 +7,6 @@ import Dashboard from "./components/Dashboard";
 import Sobre from "./components/Sobre";
 import Toast from "./components/Toast";
 import ConfirmModal from "./components/ConfirmModal";
-import PinGate from "./components/PinGate";
 import { differenceInDays, parseISO } from "date-fns";
 import { db } from "./db";
 
@@ -42,7 +41,6 @@ const pageVariants = {
 const pageTransition = { duration: 0.2, ease: "easeInOut" };
 
 export default function App() {
-  const [unlocked, setUnlocked] = useState(false);
   const [view, setView] = useState(() => localStorage.getItem("beleza_view") || "dashboard");
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -63,10 +61,8 @@ export default function App() {
     setCarregando(false);
   }, []);
 
-  const handleUnlock = useCallback(async (isNewPin) => {
-    if (isNewPin) await db.migrateToEncrypted();
-    await carregar();
-    setUnlocked(true);
+  useEffect(() => {
+    carregar();
   }, [carregar]);
 
   const handleSalvar = useCallback(async (produto) => {
@@ -154,10 +150,6 @@ export default function App() {
     }
     return produtos;
   }, [view, produtos]);
-
-  if (!unlocked) {
-    return <PinGate onUnlock={handleUnlock} />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">

@@ -1,9 +1,5 @@
-import { getActiveKey, encryptText, decryptText } from "./crypto";
-
 const DB_NAME = "beleza-by-mih";
 const DB_VERSION = 1;
-
-const SENSITIVE = ["nome", "foto", "cor"];
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -59,35 +55,6 @@ function getAll(store) {
   );
 }
 
-async function encryptProduct(p) {
-  const key = getActiveKey();
-  if (!key) return p;
-  const result = { ...p, _encrypted: true };
-  for (const field of SENSITIVE) {
-    if (result[field]) {
-      result[field] = await encryptText(key, result[field]);
-    }
-  }
-  return result;
-}
-
-async function decryptProduct(p) {
-  if (!p._encrypted) return p;
-  const key = getActiveKey();
-  if (!key) return p;
-  const result = { ...p };
-  for (const field of SENSITIVE) {
-    if (result[field]) {
-      try {
-        result[field] = await decryptText(key, result[field]);
-      } catch {
-        result[field] = "";
-      }
-    }
-  }
-  return result;
-}
-
 export const db = {
   getCategorias: () => getAll("categorias"),
 
@@ -96,8 +63,7 @@ export const db = {
       getAll("produtos"),
       getAll("categorias"),
     ]);
-    const decriptados = await Promise.all(produtos.map(decryptProduct));
-    return decriptados
+    return produtos
       .map((p) => ({
         ...p,
         categoria_nome:
@@ -110,29 +76,30 @@ export const db = {
       });
   },
 
-  addProduto: async (p) => {
-    const { id, ...produtoSemId } = p;
-    const comData = { ...produtoSemId, data_cadastro: new Date().toISOString() };
-    const encrypted = await encryptProduct(comData);
-    const database = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = database.transaction("produtos", "readwrite");
-      const req = tx.objectStore("produtos").add(encrypted);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  },
+  addProduto: (p) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("produtos", "readwrite");
+          const { id, ...produtoSemId } = p;
+          const req = tx
+            .objectStore("produtos")
+            .add({ ...produtoSemId, data_cadastro: new Date().toISOString() });
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
 
-  updateProduto: async (p) => {
-    const encrypted = await encryptProduct(p);
-    const database = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = database.transaction("produtos", "readwrite");
-      const req = tx.objectStore("produtos").put(encrypted);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  },
+  updateProduto: (p) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("produtos", "readwrite");
+          const req = tx.objectStore("produtos").put(p);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
 
   deleteProduto: (id) =>
     openDB().then(
@@ -144,20 +111,4 @@ export const db = {
           req.onerror = () => reject(req.error);
         }),
     ),
-
-  migrateToEncrypted: async () => {
-    const produtos = await getAll("produtos");
-    const database = await openDB();
-    for (const p of produtos) {
-      if (!p._encrypted) {
-        const encrypted = await encryptProduct(p);
-        await new Promise((resolve, reject) => {
-          const tx = database.transaction("produtos", "readwrite");
-          const req = tx.objectStore("produtos").put(encrypted);
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error);
-        });
-      }
-    }
-  },
 };
