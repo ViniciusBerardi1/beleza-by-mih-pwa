@@ -1,5 +1,3 @@
-import { getKeyFromPin, decryptText, clearPinStorage } from "./crypto";
-
 const DB_NAME = "beleza-by-mih";
 const DB_VERSION = 1;
 
@@ -102,30 +100,6 @@ export const db = {
           req.onerror = () => reject(req.error);
         }),
     ),
-
-  decryptAll: async (pin) => {
-    const key = await getKeyFromPin(pin);
-    if (!key) return;
-    const database = await openDB();
-    const produtos = await getAll("produtos");
-    const SENSITIVE = ["nome", "foto", "cor"];
-    for (const p of produtos) {
-      if (!p._encrypted) continue;
-      const restored = { ...p, _encrypted: false };
-      for (const field of SENSITIVE) {
-        if (restored[field]) {
-          try { restored[field] = await decryptText(key, restored[field]); } catch { /* skip */ }
-        }
-      }
-      await new Promise((resolve, reject) => {
-        const tx = database.transaction("produtos", "readwrite");
-        const req = tx.objectStore("produtos").put(restored);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-      });
-    }
-    clearPinStorage();
-  },
 
   deleteProduto: (id) =>
     openDB().then(

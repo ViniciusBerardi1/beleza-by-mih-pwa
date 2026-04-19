@@ -62,13 +62,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      if (localStorage.getItem("beleza_salt")) {
-        await db.decryptAll("1234");
-      }
-      await carregar();
-    };
-    init();
+    carregar();
   }, [carregar]);
 
   const handleSalvar = useCallback(async (produto) => {
