@@ -41,7 +41,7 @@ const pageVariants = {
 const pageTransition = { duration: 0.2, ease: "easeInOut" };
 
 export default function App() {
-  const [view, setView] = useState("dashboard");
+  const [view, setView] = useState(() => localStorage.getItem("beleza_view") || "dashboard");
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -49,6 +49,10 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [confirmandoId, setConfirmandoId] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem("beleza_view", view);
+  }, [view]);
 
   const carregar = useCallback(async () => {
     const [p, c] = await Promise.all([db.getProdutos(), db.getCategorias()]);
