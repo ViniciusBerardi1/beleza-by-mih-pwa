@@ -21,6 +21,7 @@ export default function ProdutoForm({
     tem_tamanho: produto?.tem_tamanho || 0,
     tamanho_quantidade: produto?.tamanho_quantidade || "",
     tamanho_unidade: produto?.tamanho_unidade || "ml",
+    preco_pago: produto?.preco_pago ?? "",
   });
 
   const handleSubmit = () => {
@@ -28,6 +29,10 @@ export default function ProdutoForm({
     if (!form.data_validade) return alert("Informe a data de validade.");
     if (isNaN(new Date(form.data_validade).getTime()))
       return alert("Data de validade inválida.");
+    if (form.quantidade < 0) return alert("Quantidade não pode ser negativa.");
+    if (form.estoque_minimo < 0) return alert("Estoque mínimo não pode ser negativo.");
+    if (form.tem_tamanho && !String(form.tamanho_quantidade).trim())
+      return alert("Informe a quantidade do tamanho do produto.");
     onSalvar(form);
   };
 
@@ -48,10 +53,11 @@ export default function ProdutoForm({
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1 block">
+            <label htmlFor="produto-nome" className="text-xs font-medium text-gray-500 mb-1 block">
               Nome do produto *
             </label>
             <input
+              id="produto-nome"
               type="text"
               value={form.nome}
               onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
@@ -80,10 +86,11 @@ export default function ProdutoForm({
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-xs font-medium text-gray-500 mb-1 block">
+              <label htmlFor="produto-data-validade" className="text-xs font-medium text-gray-500 mb-1 block">
                 Data de validade *
               </label>
               <input
+                id="produto-data-validade"
                 type="date"
                 value={form.data_validade}
                 min="2000-01-01"
@@ -239,6 +246,7 @@ export default function ProdutoForm({
             <div className="flex items-center gap-3 mb-2">
               <button
                 type="button"
+                data-testid="toggle-tamanho"
                 onClick={() =>
                   setForm((f) => ({
                     ...f,
@@ -313,6 +321,26 @@ export default function ProdutoForm({
                   {loja.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">
+              Preço pago <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0,00"
+                value={form.preco_pago}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, preco_pago: e.target.value === "" ? "" : parseFloat(e.target.value) || "" }))
+                }
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+              />
             </div>
           </div>
 

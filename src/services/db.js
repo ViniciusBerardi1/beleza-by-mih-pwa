@@ -1,5 +1,5 @@
 const DB_NAME = "beleza-by-mih";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -39,6 +39,10 @@ function openDB() {
 
       if (!db.objectStoreNames.contains("historico")) {
         db.createObjectStore("historico", { keyPath: "id", autoIncrement: true });
+      }
+
+      if (!db.objectStoreNames.contains("desejos")) {
+        db.createObjectStore("desejos", { keyPath: "id", autoIncrement: true });
       }
     };
 
@@ -85,7 +89,7 @@ export const db = {
       (db) =>
         new Promise((resolve, reject) => {
           const tx = db.transaction("produtos", "readwrite");
-          const { id, ...produtoSemId } = p;
+          const { id: _id, ...produtoSemId } = p;
           const req = tx
             .objectStore("produtos")
             .add({ ...produtoSemId, data_cadastro: new Date().toISOString() });
@@ -138,6 +142,45 @@ export const db = {
         new Promise((resolve, reject) => {
           const tx = db.transaction("produtos", "readwrite");
           const req = tx.objectStore("produtos").delete(id);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        }),
+    ),
+
+  getDesejos: () =>
+    getAll("desejos").then((lista) =>
+      lista.sort((a, b) => new Date(b.data_adicionado) - new Date(a.data_adicionado))
+    ),
+
+  addDesejo: (d) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("desejos", "readwrite");
+          const { id: _id, ...semId } = d;
+          const req = tx.objectStore("desejos").add({ ...semId, data_adicionado: new Date().toISOString() });
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
+
+  updateDesejo: (d) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("desejos", "readwrite");
+          const req = tx.objectStore("desejos").put(d);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        }),
+    ),
+
+  deleteDesejo: (id) =>
+    openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const tx = db.transaction("desejos", "readwrite");
+          const req = tx.objectStore("desejos").delete(id);
           req.onsuccess = () => resolve();
           req.onerror = () => reject(req.error);
         }),

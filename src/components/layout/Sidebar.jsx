@@ -1,30 +1,17 @@
 import { useState, memo } from "react";
 import { Home } from "lucide-react";
 
-const categorias = [
-  { id: "skincare", label: "Skincare", icon: "✨" },
-  { id: "cabelo", label: "Cabelo", icon: "💇" },
-  { id: "maquiagem", label: "Maquiagem", icon: "💄" },
-  { id: "corpo", label: "Corpo", icon: "🧴" },
-  { id: "perfumaria", label: "Perfumaria", icon: "🌸" },
-  { id: "outros", label: "Outros", icon: "📦" },
-];
+const CATEGORIA_ICONS = {
+  skincare: "✨",
+  cabelo: "💇",
+  maquiagem: "💄",
+  corpo: "🧴",
+  perfumaria: "🌸",
+  outros: "📦",
+};
 
-function Sidebar({ view, setView, alertas }) {
-  const [menuAberto, setMenuAberto] = useState(false);
-  const [categoriasAberto, setCategoriasAberto] = useState(true);
-  const [alertasAberto, setAlertasAberto] = useState(true);
-
-  const totalVencendo = alertas?.vencendo ?? 0;
-  const totalVencidos = alertas?.vencidos ?? 0;
-  const totalEstoqueBaixo = alertas?.estoqueBaixo ?? 0;
-
-  const navegar = (v) => {
-    setView(v);
-    setMenuAberto(false);
-  };
-
-  const Logo = ({ altura }) => (
+function Logo({ altura }) {
+  return (
     <div className="flex items-center gap-2">
       <img src="/logo.png" alt="Beleza by Mih" className={`${altura} w-auto`} />
       <h1
@@ -35,8 +22,10 @@ function Sidebar({ view, setView, alertas }) {
       </h1>
     </div>
   );
+}
 
-  const BotaoSobre = () => (
+function BotaoSobre({ view, navegar }) {
+  return (
     <div className="pt-4 border-t border-gray-100">
       <button
         onClick={() => navegar("sobre")}
@@ -47,8 +36,21 @@ function Sidebar({ view, setView, alertas }) {
       </button>
     </div>
   );
+}
 
-  const MenuConteudo = () => (
+function MenuConteudo({
+  view,
+  navegar,
+  categorias,
+  categoriasAberto,
+  setCategoriasAberto,
+  alertasAberto,
+  setAlertasAberto,
+  totalVencendo,
+  totalVencidos,
+  totalEstoqueBaixo,
+}) {
+  return (
     <div className="flex flex-col gap-1">
       <button
         onClick={() => navegar("produtos")}
@@ -74,6 +76,14 @@ function Sidebar({ view, setView, alertas }) {
         <span className="text-lg">📋</span> Histórico
       </button>
 
+      <button
+        onClick={() => navegar("desejos")}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-left
+          ${view === "desejos" ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
+      >
+        <span className="text-lg">💝</span> Lista de desejos
+      </button>
+
       <div className="mt-3">
         <button
           onClick={() => setCategoriasAberto(!categoriasAberto)}
@@ -91,8 +101,10 @@ function Sidebar({ view, setView, alertas }) {
                 className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-colors w-full text-left
                   ${view === `cat_${cat.id}` ? "bg-rose-50 text-rose-600" : "text-gray-500 hover:bg-gray-100"}`}
               >
-                <span className="text-base">{cat.icon}</span>
-                {cat.label}
+                <span className="text-base">
+                  {CATEGORIA_ICONS[cat.nome.toLowerCase()] || "🏷️"}
+                </span>
+                {cat.nome}
               </button>
             ))}
           </div>
@@ -151,24 +163,49 @@ function Sidebar({ view, setView, alertas }) {
           </div>
         )}
       </div>
-
     </div>
   );
+}
+
+function Sidebar({ view, setView, alertas, categorias = [] }) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [categoriasAberto, setCategoriasAberto] = useState(true);
+  const [alertasAberto, setAlertasAberto] = useState(true);
+
+  const totalVencendo = alertas?.vencendo ?? 0;
+  const totalVencidos = alertas?.vencidos ?? 0;
+  const totalEstoqueBaixo = alertas?.estoqueBaixo ?? 0;
+
+  const navegar = (v) => {
+    setView(v);
+    setMenuAberto(false);
+  };
+
+  const menuProps = {
+    view,
+    navegar,
+    categorias,
+    categoriasAberto,
+    setCategoriasAberto,
+    alertasAberto,
+    setAlertasAberto,
+    totalVencendo,
+    totalVencidos,
+    totalEstoqueBaixo,
+  };
 
   return (
     <>
-      {/* DESKTOP — sidebar fixa */}
       <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 flex-col py-6 px-4 gap-1 z-40">
         <div className="mb-6 px-2">
           <Logo altura="h-10" />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <MenuConteudo />
+          <MenuConteudo {...menuProps} />
         </div>
-        <BotaoSobre />
+        <BotaoSobre view={view} navegar={navegar} />
       </aside>
 
-      {/* MOBILE — header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between">
         <button
           onClick={() => setMenuAberto(!menuAberto)}
@@ -187,7 +224,6 @@ function Sidebar({ view, setView, alertas }) {
         </button>
       </header>
 
-      {/* MOBILE — drawer */}
       {menuAberto && (
         <>
           <div
@@ -205,9 +241,9 @@ function Sidebar({ view, setView, alertas }) {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <MenuConteudo />
+              <MenuConteudo {...menuProps} />
             </div>
-            <BotaoSobre />
+            <BotaoSobre view={view} navegar={navegar} />
           </div>
         </>
       )}

@@ -1,7 +1,9 @@
-const CACHE_NAME = 'beleza-by-mih-v2';
+const CACHE_NAME = 'beleza-by-mih-v3';
+
+const APP_SHELL = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png', '/logo.png', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/'])));
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
@@ -18,7 +20,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
 
   const { pathname } = new URL(e.request.url);
-  const isDynamic = pathname === '/' || /\.(html|js|css)$/.test(pathname);
+  const isDynamic = pathname === '/' || /\.(html|js|jsx|ts|tsx|css)$/.test(pathname);
 
   if (isDynamic) {
     // Network-first: sempre busca versão nova, cai no cache se offline

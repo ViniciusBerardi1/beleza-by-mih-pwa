@@ -1,17 +1,7 @@
 import { useMemo, memo, useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-
-function urlLoja(nome, loja) {
-  const busca = encodeURIComponent(nome);
-  const urls = {
-    sephora: `https://www.sephora.com.br/search?q=${busca}`,
-    belezanaweb: `https://www.belezanaweb.com.br/busca?q=${busca}`,
-    epoca: `https://www.epocacosmeticos.com.br/busca?q=${busca}`,
-    boticario: `https://www.boticario.com.br/busca?q=${busca}`,
-  };
-  return urls[loja] || urls.sephora;
-}
+import { getLojaUrl } from "../../utils/stores";
 
 function Dashboard({ produtos, categorias, setView, carregando }) {
   const [listaAberta, setListaAberta] = useState(false);
@@ -19,6 +9,12 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
 
   const totalProdutos = produtos.length;
   const totalItens = produtos.reduce((acc, p) => acc + (p.quantidade || 0), 0);
+
+  const valorEstoque = useMemo(() => {
+    const comPreco = produtos.filter((p) => p.preco_pago > 0);
+    const total = comPreco.reduce((acc, p) => acc + p.preco_pago * (p.quantidade || 0), 0);
+    return { total, cobertura: comPreco.length, totalProdutos: produtos.length };
+  }, [produtos]);
   const vencidos = produtos.filter(
     (p) =>
       p.data_validade && differenceInDays(parseISO(p.data_validade), hoje) < 0,
@@ -121,7 +117,6 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
         Dashboard
       </motion.h2>
 
-      {/* Cards de resumo */}
       <div className="grid grid-cols-4 gap-2 md:gap-4 mb-6">
         {cards.map((card, i) => (
           <motion.div
@@ -142,8 +137,29 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
         ))}
       </div>
 
+      {valorEstoque.cobertura > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.28 }}
+          className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-4"
+        >
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Valor estimado em estoque</p>
+            <p className="text-2xl font-semibold text-gray-800">
+              R$ {valorEstoque.total.toFixed(2).replace(".", ",")}
+            </p>
+            {valorEstoque.cobertura < valorEstoque.totalProdutos && (
+              <p className="text-xs text-gray-400 mt-1">
+                baseado em {valorEstoque.cobertura} de {valorEstoque.totalProdutos} produtos com preço cadastrado
+              </p>
+            )}
+          </div>
+          <div className="text-3xl shrink-0">💰</div>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {/* Por categoria */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -188,7 +204,6 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
           )}
         </motion.div>
 
-        {/* Próximos a vencer */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -259,7 +274,6 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
         </motion.div>
       </div>
 
-      {/* Lista de compras */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -319,7 +333,7 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
                               </div>
                             </div>
                             <button
-                              onClick={() => window.open(urlLoja(p.nome, p.loja_compra), "_blank")}
+                              onClick={() => window.open(getLojaUrl(p.nome, p.loja_compra), "_blank")}
                               className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-2"
                             >
                               🛍️ Comprar
@@ -336,7 +350,6 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Produtos para repor */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -383,7 +396,7 @@ function Dashboard({ produtos, categorias, setView, carregando }) {
                 </div>
                 <button
                   onClick={() =>
-                    window.open(urlLoja(p.nome, p.loja_compra), "_blank")
+                    window.open(getLojaUrl(p.nome, p.loja_compra), "_blank")
                   }
                   className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-2"
                 >

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, memo } from "react";
+import { getLojaUrl } from "../../utils/stores";
 import { AnimatePresence } from "framer-motion";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -42,17 +43,9 @@ function EstoqueBadge({ quantidade, estoqueMinimo }) {
 }
 
 function BotaoComprar({ nome, loja }) {
-  const busca = encodeURIComponent(nome);
-  const urls = {
-    sephora: `https://www.sephora.com.br/search?q=${busca}`,
-    belezanaweb: `https://www.belezanaweb.com.br/busca?q=${busca}`,
-    epoca: `https://www.epocacosmeticos.com.br/busca?q=${busca}`,
-    boticario: `https://www.boticario.com.br/busca?q=${busca}`,
-  };
-  const url = urls[loja] || urls.sephora;
   return (
     <button
-      onClick={(e) => { e.stopPropagation(); window.open(url, "_blank"); }}
+      onClick={(e) => { e.stopPropagation(); window.open(getLojaUrl(nome, loja), "_blank"); }}
       className="text-xs text-white bg-black hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors"
     >
       🛍️ Comprar
@@ -120,10 +113,16 @@ function ProdutoList({
   onAtualizarQuantidade,
 }) {
   const [filtroCategoria, setFiltroCategoria] = useState("");
-  const [busca, setBusca] = useState("");
-  const [ordenacao, setOrdenacao] = useState("recentes");
-  const [ordem, setOrdem] = useState("desc");
+  const [busca, setBusca] = useState(() => localStorage.getItem("beleza_busca") || "");
+  const [ordenacao, setOrdenacao] = useState(() => localStorage.getItem("beleza_ordenacao") || "recentes");
+  const [ordem, setOrdem] = useState(() => localStorage.getItem("beleza_ordem") || "desc");
   const [produtoAberto, setProdutoAberto] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem("beleza_busca", busca);
+    localStorage.setItem("beleza_ordenacao", ordenacao);
+    localStorage.setItem("beleza_ordem", ordem);
+  }, [busca, ordenacao, ordem]);
 
   const filtrados = produtos
     .filter((p) => {

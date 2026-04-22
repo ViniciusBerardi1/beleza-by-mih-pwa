@@ -52,12 +52,10 @@ export default function Sobre() {
   const versao = "1.5.0";
 
   const handleSecretClick = () => {
-    const novosClicks = clicks + 1;
-    setClicks(novosClicks);
-    if (novosClicks >= 5) {
-      setEasterEgg(true);
-      setClicks(0);
-    }
+    setClicks((prev) => {
+      if (prev + 1 >= 5) { setEasterEgg(true); return 0; }
+      return prev + 1;
+    });
   };
 
   return (

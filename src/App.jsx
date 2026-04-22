@@ -1,24 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Sidebar from "./components/Sidebar";
-import ProdutoList from "./components/ProdutoList";
-import ProdutoForm from "./components/ProdutoForm";
-import Dashboard from "./components/Dashboard";
-import Sobre from "./components/Sobre";
-import Historico from "./components/Historico";
-import Toast from "./components/Toast";
-import ConfirmModal from "./components/ConfirmModal";
+import Sidebar from "./components/layout/Sidebar";
+import ProdutoList from "./components/produto/ProdutoList";
+import ProdutoForm from "./components/produto/ProdutoForm";
+import Dashboard from "./components/views/Dashboard";
+import Sobre from "./components/views/Sobre";
+import Historico from "./components/views/Historico";
+import Desejos from "./components/views/Desejos";
+import Toast from "./components/ui/Toast";
+import ConfirmModal from "./components/ui/ConfirmModal";
 import { differenceInDays, parseISO } from "date-fns";
-import { db } from "./db";
-
-const CATEGORIAS_MAP = {
-  cat_skincare: "Skincare",
-  cat_cabelo: "Cabelo",
-  cat_maquiagem: "Maquiagem",
-  cat_corpo: "Corpo",
-  cat_perfumaria: "Perfumaria",
-  cat_outros: "Outros",
-};
+import { db } from "./services/db";
 
 const TITULO_VIEW = {
   produtos: "Todos os Produtos",
@@ -26,12 +18,6 @@ const TITULO_VIEW = {
   vencidos: "🔴 Produtos Vencidos",
   estoque_baixo: "📦 Estoque Baixo",
   historico: "📋 Histórico de consumo",
-  cat_skincare: "Skincare",
-  cat_cabelo: "Cabelo",
-  cat_maquiagem: "Maquiagem",
-  cat_corpo: "Corpo",
-  cat_perfumaria: "Perfumaria",
-  cat_outros: "Outros",
 };
 
 const pageVariants = {
@@ -43,7 +29,11 @@ const pageVariants = {
 const pageTransition = { duration: 0.2, ease: "easeInOut" };
 
 export default function App() {
-  const [view, setView] = useState(() => localStorage.getItem("beleza_view") || "dashboard");
+  const [view, setView] = useState(() => {
+    const stored = localStorage.getItem("beleza_view") || "dashboard";
+    if (stored.startsWith("cat_") && isNaN(Number(stored.replace("cat_", "")))) return "dashboard";
+    return stored;
+  });
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -51,16 +41,23 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [confirmandoId, setConfirmandoId] = useState(null);
+  const [desejoOrigemId, setDesejoOrigemId] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("beleza_view", view);
   }, [view]);
 
   const carregar = useCallback(async () => {
-    const [p, c] = await Promise.all([db.getProdutos(), db.getCategorias()]);
-    setProdutos(p);
-    setCategorias(c);
-    setCarregando(false);
+    try {
+      const [p, c] = await Promise.all([db.getProdutos(), db.getCategorias()]);
+      setProdutos(p);
+      setCategorias(c);
+    } catch (err) {
+      console.error("erro ao carregar:", err);
+      setToast("Erro ao carregar dados. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -74,15 +71,34 @@ export default function App() {
         setToast("Produto atualizado!");
       } else {
         await db.addProduto(produto);
-        setToast("Produto adicionado!");
+        if (desejoOrigemId) {
+          await db.deleteDesejo(desejoOrigemId);
+          setDesejoOrigemId(null);
+          setToast("Adicionado ao estoque e removido da lista de desejos!");
+        } else {
+          setToast("Produto adicionado!");
+        }
       }
       await carregar();
       setShowForm(false);
       setEditando(null);
     } catch (err) {
       console.error("erro ao salvar:", err);
+      setToast("Erro ao salvar. Tente novamente.");
     }
-  }, [carregar]);
+  }, [carregar, desejoOrigemId]);
+
+  const handleAdicionarDesejo = useCallback((desejo) => {
+    setEditando({
+      id: null,
+      nome: desejo.nome,
+      categoria_id: desejo.categoria_id,
+      preco_pago: desejo.preco_estimado || "",
+    });
+    setDesejoOrigemId(desejo.id);
+    setView("produtos");
+    setShowForm(true);
+  }, []);
 
   const handleEditar = useCallback((produto) => {
     setEditando(produto);
@@ -94,10 +110,16 @@ export default function App() {
   }, []);
 
   const confirmarDelete = useCallback(async () => {
-    await db.deleteProduto(confirmandoId);
-    await carregar();
-    setConfirmandoId(null);
-    setToast("Produto removido.");
+    try {
+      await db.deleteProduto(confirmandoId);
+      await carregar();
+      setToast("Produto removido.");
+    } catch (err) {
+      console.error("erro ao deletar:", err);
+      setToast("Erro ao remover. Tente novamente.");
+    } finally {
+      setConfirmandoId(null);
+    }
   }, [confirmandoId, carregar]);
 
   const handleNovo = useCallback(() => {
@@ -106,18 +128,23 @@ export default function App() {
   }, []);
 
   const handleAtualizarQuantidade = useCallback(async (produto, quantidade) => {
-    await db.updateProduto({ ...produto, quantidade });
-    if (quantidade === 0) {
-      await db.addHistorico({
-        produto_id: produto.id,
-        produto_nome: produto.nome,
-        produto_cor: produto.cor || "",
-        categoria_nome: produto.categoria_nome || "",
-        foto: produto.foto || "",
-        data_zerado: new Date().toISOString(),
-      });
+    try {
+      await db.updateProduto({ ...produto, quantidade });
+      if (quantidade === 0) {
+        await db.addHistorico({
+          produto_id: produto.id,
+          produto_nome: produto.nome,
+          produto_cor: produto.cor || "",
+          categoria_nome: produto.categoria_nome || "",
+          foto: produto.foto || "",
+          data_zerado: new Date().toISOString(),
+        });
+      }
+      await carregar();
+    } catch (err) {
+      console.error("erro ao atualizar quantidade:", err);
+      setToast("Erro ao atualizar quantidade.");
     }
-    await carregar();
   }, [carregar]);
 
   const alertas = useMemo(() => {
@@ -155,17 +182,15 @@ export default function App() {
       return produtos.filter((p) => p.quantidade <= (p.estoque_minimo ?? 1));
     }
     if (view.startsWith("cat_")) {
-      const nomeCategoria = CATEGORIAS_MAP[view];
-      return produtos.filter(
-        (p) => p.categoria_nome?.toLowerCase() === nomeCategoria?.toLowerCase(),
-      );
+      const catId = Number(view.replace("cat_", ""));
+      return produtos.filter((p) => Number(p.categoria_id) === catId);
     }
     return produtos;
   }, [view, produtos]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
-      <Sidebar view={view} setView={setView} alertas={alertas} />
+      <Sidebar view={view} setView={setView} alertas={alertas} categorias={categorias} />
 
       <AnimatePresence>
         {(view === "produtos" || view.startsWith("cat_")) && (
@@ -194,6 +219,8 @@ export default function App() {
           >
             {view === "sobre" ? (
               <Sobre />
+            ) : view === "desejos" ? (
+              <Desejos categorias={categorias} onAdicionarAoEstoque={handleAdicionarDesejo} />
             ) : view === "historico" ? (
               <Historico />
             ) : view === "dashboard" ? (
@@ -205,7 +232,7 @@ export default function App() {
               />
             ) : (
               <ProdutoList
-                titulo={TITULO_VIEW[view] || "Produtos"}
+                titulo={TITULO_VIEW[view] || categorias.find((c) => `cat_${c.id}` === view)?.nome || "Produtos"}
                 produtos={produtosFiltrados}
                 categorias={categorias}
                 onEditar={handleEditar}

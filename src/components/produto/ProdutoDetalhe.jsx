@@ -63,7 +63,6 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
         onClick={(e) => e.stopPropagation()}
         className="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col"
       >
-        {/* Foto ou placeholder */}
         {p.foto ? (
           <img
             src={p.foto}
@@ -77,7 +76,6 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
         )}
 
         <div className="p-5 overflow-y-auto">
-          {/* Título */}
           <div className="flex items-start justify-between gap-3 mb-1">
             <h2 className="text-base font-semibold text-gray-800 leading-snug">
               {p.nome}
@@ -89,7 +87,6 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
           </div>
           <p className="text-xs text-gray-400 mb-4">{p.categoria_nome}</p>
 
-          {/* Badges */}
           <div className="flex flex-wrap gap-2 mb-4">
             <StatusBadge dataValidade={p.data_validade} />
             {estoqueBaixo && (
@@ -99,7 +96,6 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
             )}
           </div>
 
-          {/* Detalhes */}
           <div className="bg-gray-50 rounded-xl px-4 py-1 mb-5">
             {p.tem_tamanho && p.tamanho_quantidade && (
               <Linha label="Tamanho" valor={`${p.tamanho_quantidade} ${p.tamanho_unidade}`} />
@@ -112,6 +108,9 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
                 valor={format(parseISO(p.data_validade), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               />
             )}
+            {p.preco_pago > 0 && (
+              <Linha label="Preço pago" valor={`R$ ${Number(p.preco_pago).toFixed(2).replace(".", ",")}`} />
+            )}
             {p.loja_compra && (
               <Linha label="Loja preferida" valor={LOJAS[p.loja_compra] || p.loja_compra} />
             )}
@@ -123,7 +122,6 @@ function ProdutoDetalhe({ produto: p, onFechar, onEditar }) {
             )}
           </div>
 
-          {/* Botões */}
           <div className="flex gap-3">
             <button
               onClick={onFechar}
