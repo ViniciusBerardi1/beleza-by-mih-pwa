@@ -3,6 +3,27 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const NOTAS = [
   {
+    versao: "1.6.0",
+    data: "Abril 2026",
+    novidades: [
+      {
+        emoji: "🌟",
+        titulo: "Lista de Desejos",
+        descricao: "Nova seção para você guardar os produtos que quer comprar futuramente — sem misturar com o estoque atual.",
+      },
+      {
+        emoji: "🧪",
+        titulo: "Testes automatizados",
+        descricao: "O app agora tem uma suíte de testes para garantir que as funcionalidades principais continuem funcionando a cada atualização.",
+      },
+      {
+        emoji: "🗂️",
+        titulo: "Código reorganizado",
+        descricao: "A estrutura interna do app foi reestruturada para facilitar futuras melhorias — sem mudança visível para você, mas muito mais organizado por baixo dos panos.",
+      },
+    ],
+  },
+  {
     versao: "1.5.0",
     data: "Abril 2026",
     novidades: [
@@ -49,7 +70,7 @@ export default function Sobre() {
   const [easterEgg, setEasterEgg] = useState(false);
   const [clicks, setClicks] = useState(0);
   const [notasAberto, setNotasAberto] = useState(false);
-  const versao = "1.5.0";
+  const versao = "1.6.0";
 
   const handleSecretClick = () => {
     setClicks((prev) => {
